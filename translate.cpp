@@ -16,6 +16,7 @@ Ex::Ex(tree::Exp* exp)
 
 tree::Exp* Ex::unEx()
 {
+	// std::cout << ((tree::CONST*)m_exp)->m_value << std::endl;
 	return m_exp;
 }
 

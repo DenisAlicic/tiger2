@@ -38,25 +38,35 @@ Exp* TEMP::build(const ExpList& kids)
 
 BINOP::BINOP(Binop binop, Exp* left, Exp* right)
 	: Exp(nullptr), m_binop(binop), m_left(left), m_right(right)
-{}
+{
+}
 
 BINOP::BINOP(int binop, Exp* left, Exp* right)
-	: Exp(nullptr)
+	: Exp(nullptr), m_left(left), m_right(right)
 {
 	if (binop == PLUS)
-		BINOP(PLUS, left, right);
+		m_binop = tree::PLUS;
+		// BINOP(PLUS, left, right);
 	if (binop == MINUS)
-		BINOP(MINUS, left, right);
+		m_binop = tree::MINUS;
+		// BINOP(MINUS, left, right);
 	if (binop == MUL)
-		BINOP(MUL, left, right);
+		m_binop = tree::MUL;
+		// BINOP(MUL, left, right);
 	if (binop == DIV)
-		BINOP(DIV, left, right);
+		m_binop = tree::DIV;
+		// BINOP(DIV, left, right);
 	if (binop == AND)
-		BINOP(AND, left, right);
+		m_binop = tree::AND;
+		// BINOP(AND, left, right);
 	if (binop == OR)
-		BINOP(OR, left, right);
+		m_binop = tree::OR;
+		// BINOP(OR, left, right);
 	if (binop == XOR)
-		BINOP(XOR, left, right);
+		m_binop = tree::XOR;
+		// BINOP(XOR, left, right);
+	
+	// ako se stavi BIONP onda je m_left i m_right null (ne znam zasto)
 }
 
 ExpList* BINOP::kids()

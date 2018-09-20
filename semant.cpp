@@ -194,35 +194,67 @@ ExpTy* Semant::transVar(absyn::Var* e)
 ExpTy* Semant::transExp(absyn::Exp* e)
 {
 	if (instanceof<absyn::IntExp>(e))
+	{
+		// std::cout << "intexp " << ((absyn::IntExp*) e)->m_value<< std::endl;
 		return transExp((absyn::IntExp*) e);
+	}
 	if (instanceof<absyn::StringExp>(e))
+	{
 		return transExp((absyn::StringExp*) e);
+	}
 	if (instanceof<absyn::NilExp>(e))
+	{
 		return transExp((absyn::NilExp*) e);
+	}
 	if (instanceof<absyn::VarExp>(e))
+	{
 		return transExp((absyn::VarExp*) e);
+	}
 	if (instanceof<absyn::OpExp>(e))
+	{
+		// std::cout << "opexp" << std::endl;
 		return transExp((absyn::OpExp*) e);
+	}
 	if (instanceof<absyn::AssignExp>(e))
+	{
 		return transExp((absyn::AssignExp*) e);
+	}
 	if (instanceof<absyn::CallExp>(e))
+	{
 		return transExp((absyn::CallExp*) e);
+	}
 	if (instanceof<absyn::RecordExp>(e))
+	{
 		return transExp((absyn::RecordExp*) e);
+	}
 	if (instanceof<absyn::ArrayExp>(e))
+	{
 		return transExp((absyn::ArrayExp*) e);
+	}
 	if (instanceof<absyn::IfExp>(e))
+	{
 		return transExp((absyn::IfExp*) e);
+	}
 	if (instanceof<absyn::WhileExp>(e))
+	{
 		return transExp((absyn::WhileExp*) e);
+	}
 	if (instanceof<absyn::ForExp>(e))
+	{
 		return transExp((absyn::ForExp*) e);
+	}
 	if (instanceof<absyn::BreakExp>(e))
+	{
 		return transExp((absyn::BreakExp*) e);
+	}
 	if (instanceof<absyn::LetExp>(e))
+	{
 		return transExp((absyn::LetExp*) e);
+	}
 	if (instanceof<absyn::SeqExp>(e))
+	{
 		return transExp((absyn::SeqExp*) e);
+	}
 	return nullptr;
 }
 
@@ -307,6 +339,12 @@ ExpTy* Semant::transExp(absyn::OpExp* e)
 	ExpTy* el = transExp(e->m_left); 
 	ExpTy* er = transExp(e->m_right); 
 
+	// if (instanceof<translate::Ex>(el->m_exp)){
+	// 	tree::Exp* x = ((translate::Ex*)(el->m_exp))->m_exp;
+	// 	if (instanceof<tree::CONST>(x))
+	// 		std::cout << "tree const" << std::endl;
+	// }
+
 	if (el == nullptr || er == nullptr) {
 		return nullptr;
 	}
@@ -353,7 +391,12 @@ ExpTy* Semant::transExp(absyn::OpExp* e)
 	
 	if (e->m_oper < absyn::OpExp::EQ) {
 		if (instanceof<types::INT>(el->m_ty->actual()) && instanceof<types::INT>(er->m_ty->actual()))
-			return new ExpTy(m_trans->transOpExp(e->m_oper, transExp(e->m_left)->m_exp, transExp(e->m_right)->m_exp), new types::INT());
+		{
+
+			ExpTy* x = new ExpTy(m_trans->transOpExp(e->m_oper, transExp(e->m_left)->m_exp, transExp(e->m_right)->m_exp), new types::INT());
+
+			return x;
+		}
 		
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
