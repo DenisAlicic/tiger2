@@ -1,0 +1,13 @@
+# Executables
+*.out
+tiger
+
+# Compiled Object files
+*.o
+*.obj
+*.aux
+*.log
+*.nav
+*.snm
+*.toc
+*.vrb
