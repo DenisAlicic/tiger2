@@ -1,4 +1,5 @@
 let
 	type a = int
 in
+4
 end
