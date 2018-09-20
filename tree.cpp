@@ -84,20 +84,27 @@ CJUMP::CJUMP(Relop relop, Exp* left, Exp* right, Label* iftrue, Label* iffalse)
 {}
 
 CJUMP::CJUMP(int relop, Exp* left, Exp* right, temp::Label* iftrue, temp::Label* iffalse)
+	: m_left(left), m_right(right), m_iftrue(iftrue), m_iffalse(iffalse)
 {
 
 	if (relop == EQ)
-		CJUMP(EQ, left, right, iftrue, iffalse);
+		m_relop = EQ;
+		// CJUMP(EQ, left, right, iftrue, iffalse);
 	if (relop == NE)
-		CJUMP(NE, left, right, iftrue, iffalse);
+		m_relop = NE;
+		// CJUMP(NE, left, right, iftrue, iffalse);
 	if (relop == LT)
-		CJUMP(LT, left, right, iftrue, iffalse);
+		m_relop = LT;
+		// CJUMP(LT, left, right, iftrue, iffalse);
 	if (relop == LE)
-		CJUMP(LE, left, right, iftrue, iffalse);
+		m_relop = LE;
+		// CJUMP(LE, left, right, iftrue, iffalse);
 	if (relop == GE)
-		CJUMP(GE, left, right, iftrue, iffalse);
+		m_relop = GE;
+		// CJUMP(GE, left, right, iftrue, iffalse);
 	if (relop == GT)
-		CJUMP(GT, left, right, iftrue, iffalse);
+		m_relop = GT;
+		// CJUMP(GT, left, right, iftrue, iffalse);
 }
 
 Relop CJUMP::notRel(Relop relop)
