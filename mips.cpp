@@ -56,11 +56,11 @@ frame::Frame* MipsFrame::newFrame(temp::Label* name, util::BoolList* formals)
 	MipsFrame* ret = new MipsFrame();
 	ret->m_name = name;
 	temp::TempList* argReg = m_argRegs;
-	for (util::BoolList* f = formals; f != nullptr; f = f->m_tail, argReg = argReg->m_tail) {
+	for (util::BoolList* f = formals; f != nullptr; f = f->m_tail, argReg = argReg->tail()) {
 		frame::Access* a = ret->allocLocal(f->m_head);
 		ret->m_formals = new frame::AccessList(a, ret->m_formals);
 		if (argReg != nullptr) {
-			ret->m_saveArgs.push_back(new tree::MOVE(a->exp(new tree::TEMP(m_fp)), new tree::TEMP(argReg->m_head)));
+			ret->m_saveArgs.push_back(new tree::MOVE(a->exp(new tree::TEMP(m_fp)), new tree::TEMP(argReg->head())));
 		}
 	}
 	return ret;
@@ -90,9 +90,9 @@ tree::Stm* MipsFrame::procEntryExit1(tree::Stm* body)
 	// save callee-save registers
 	std::vector<frame::Access*> calleeAcc(m_numOfcalleeSaves);
 	temp::TempList* calleeTemp = m_calleeSaves;
-	for (int i = 0; i < m_numOfcalleeSaves; ++i, calleeTemp = calleeTemp->m_tail) {
+	for (int i = 0; i < m_numOfcalleeSaves; ++i, calleeTemp = calleeTemp->tail()) {
 		calleeAcc[i] = allocLocal(true); // local var for each callee save register
-		body = new tree::SEQ(new tree::MOVE(calleeAcc[i]->exp(new tree::TEMP(m_fp)), new tree::TEMP(calleeTemp->m_head)), body);
+		body = new tree::SEQ(new tree::MOVE(calleeAcc[i]->exp(new tree::TEMP(m_fp)), new tree::TEMP(calleeTemp->head())), body);
 	}
 
 	// save return address register
@@ -104,8 +104,8 @@ tree::Stm* MipsFrame::procEntryExit1(tree::Stm* body)
 
 	// restore callee saved registers
 	calleeTemp = m_calleeSaves;
-	for (int i = 0; i < m_numOfcalleeSaves; ++i, calleeTemp = calleeTemp->m_tail)
-		body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(calleeTemp->m_head), calleeAcc[i]->exp(new tree::TEMP(m_fp))));
+	for (int i = 0; i < m_numOfcalleeSaves; ++i, calleeTemp = calleeTemp->tail())
+		body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(calleeTemp->head()), calleeAcc[i]->exp(new tree::TEMP(m_fp))));
 
 	body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(m_ra), raAcc->exp(new tree::TEMP(m_fp))));
 	body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(m_fp), fpAcc->expFromStack(new tree::TEMP(m_sp))));

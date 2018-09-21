@@ -2,14 +2,14 @@
 
 using namespace temp;
 
-int Temp::m_count = 40;
+int Temp::s_count = 40;
 
 Temp::Temp(int i)
 	: m_num(i)
 {}
 
 Temp::Temp()
-	: m_num(m_count++)
+	: m_num(s_count++)
 {}
 
 std::string Temp::toString() const
@@ -18,10 +18,10 @@ std::string Temp::toString() const
 }
 
 
-int Label::m_count = 0;
+int Label::s_count = 0;
 
 Label::Label(std::string name)
-	: m_name(name.empty() ? "L"+std::to_string(m_count++) : std::move(name))
+	: m_name(name.empty() ? "L" + std::to_string(s_count++) : std::move(name))
 {}
 
 
@@ -39,14 +39,52 @@ LabelList::LabelList(Label* head, LabelList* tail)
 	: m_head(head), m_tail(tail)
 {}
 
-std::string DefaultMap::tempMap(Temp* temp) const
+LabelList::~LabelList()
 {
-	return temp->toString();
+	LabelList* x = this;
+	while (x != nullptr) {
+		delete x->m_head;
+		x = x->m_tail;
+	}
+}
+
+Label* LabelList::head() const
+{
+	return m_head;
+}
+
+LabelList* LabelList::tail() const
+{
+	return m_tail;
 }
 
 TempList::TempList(Temp* head, TempList* tail)
 	: m_head(head), m_tail(tail)
 {}
+
+Temp* TempList::head() const
+{
+	return m_head;
+}
+
+TempList* TempList::tail() const
+{
+	return m_tail;
+}
+
+TempList::~TempList()
+{
+	TempList* x = this;
+	while (x != nullptr) {
+		delete x->m_head;
+		x = x->m_tail;
+	}
+}
+
+std::string DefaultMap::tempMap(Temp* temp) const
+{
+	return temp->toString();
+}
 
 CombineMap::CombineMap(TempMap* tmap1, TempMap* tmap2)
 	: m_tmap1(tmap1), m_tmap2(tmap2)
@@ -58,4 +96,10 @@ std::string CombineMap::tempMap(Temp* temp) const
 	if (!s.empty())
 		return s;
 	return m_tmap2->tempMap(temp);
+}
+
+CombineMap::~CombineMap()
+{
+	delete m_tmap1;
+	delete m_tmap2;
 }

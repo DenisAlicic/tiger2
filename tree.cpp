@@ -186,6 +186,11 @@ JUMP::JUMP(Exp* exp, LabelList* targets)
 	: m_exp(exp), m_targets(targets)
 {}
 
+JUMP::~JUMP()
+{
+	delete m_targets;
+}
+
 JUMP::JUMP(Label* target)
 	: m_exp(new NAME(target)), m_targets(new LabelList(target, nullptr))
 {}

@@ -294,8 +294,8 @@ void TraceSchedule::trace(tree::StmList* l){
         tree::Stm* s = last->m_tail->m_head;
         if(instanceof<tree::JUMP>(s)){
             tree::JUMP* j = (tree::JUMP*)(s);
-            tree::StmList* target = (tree::StmList*)((m_table->find(j->m_targets->m_head))->second);
-            if(j->m_targets->m_tail == nullptr && target != nullptr){
+            tree::StmList* target = (tree::StmList*)((m_table->find(j->m_targets->head()))->second);
+            if(j->m_targets->tail() == nullptr && target != nullptr){
                 last->m_tail = target;
                 l = target;
             }

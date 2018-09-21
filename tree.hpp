@@ -99,6 +99,8 @@ namespace tree {
 		JUMP(temp::Label* target);
 		ExpList* kids() override;
 		Stm* build(const ExpList& kids) override;
+
+		~JUMP();
 		//TODO free
 	};
 
