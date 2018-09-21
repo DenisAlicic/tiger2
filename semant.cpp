@@ -168,7 +168,6 @@ frag::Frag* Semant::transProg(absyn::Exp* e)
 	ExpTy* et = transExp(e);
 	
 	if (tiger::errormsg::ErrorMsg::anyErrors) {
-		std::cout << "" << std::endl;
 		return nullptr;
 	}
 

@@ -4,7 +4,6 @@
 #include "tree.hpp"
 #include "temp.hpp"
 #include "util.hpp"
-#include "assem.hpp"
 #include <set>
 
 // The class Frame holds information about formal parameters and local vari- ables allocated in this frame. To make a new frame for a function f with k formal parameters, call newFrame( f , l) , where l is a list of k booleans: true for each parameter that escapes and false for each parameter that does not.
@@ -46,9 +45,6 @@ namespace frame {
 			virtual temp::Temp* RA() = 0; // return adress is created by the CALL instruction and tells where (within the calling function) control should return upon completion of the current function
 			virtual temp::Temp* RV() = 0; // return value
 
-			// for caller and callee save registers
-			virtual std::set<temp::Temp*> registers() = 0;
-
 
 			//  example
 			// L4:
@@ -58,17 +54,6 @@ namespace frame {
 			
 			// Moving incoming formal parameters, and saving and restoring of callee-save registers
 			virtual tree::Stm* procEntryExit1(tree::Stm* body) = 0;
-
-			// assure that the temporaries zero, return-address, stack pointer, and all the callee-saves registers are still live at the end of the function
-			virtual assem::InstrList* procEntryExit2(assem::InstrList* body) = 0;
-
-			// pseudo-instructions, as needed in the particular assembly language, to an- nounce the beginning of a function;
-			//an instruction to adjust the stack pointer (to allocate a new frame)
-			//an instruction to reset the stack pointer (to deallocate the frame);
-			//pseudo-instructions, as needed, to announce the end of a function.
-			virtual assem::InstrList* procEntryExit3(assem::InstrList* body) = 0; 
-
-			virtual assem::InstrList* codegen(tree::Stm* s) = 0;
 	};
 
 }; // end of namespace

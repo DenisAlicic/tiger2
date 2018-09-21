@@ -2,7 +2,7 @@ CC=g++
 CPPFLAGS=-std=c++17
 LDFLAGS=
 
-tiger: lex.yy.o parser.tab.o temp.o tree.o frame.o util.o symbol.o absyn.o assem.o types.o canon.o frag.o findescape.o translate.o errormsg.o mips.o semant.o
+tiger: lex.yy.o parser.tab.o temp.o tree.o frame.o util.o symbol.o absyn.o  types.o canon.o frag.o translate.o errormsg.o mips.o semant.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 lex.yy.o: lex.yy.c parser.tab.hpp
 	$(CC) $(CPPFLAGS) -Wno-sign-compare -c -o $@ $<
@@ -24,15 +24,11 @@ symbol.o: symbol.cpp symbol.hpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 absyn.o: absyn.cpp absyn.hpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
-assem.o: assem.cpp assem.hpp
-	$(CC) $(CPPFLAGS) -c -o $@ $<
 canon.o: canon.cpp canon.hpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 types.o: types.cpp types.hpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 frag.o: frag.cpp frag.hpp
-	$(CC) $(CPPFLAGS) -c -o $@ $<
-findescape.o: findescape.cpp findescape.hpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 translate.o: translate.cpp translate.hpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
