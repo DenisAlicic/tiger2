@@ -33,17 +33,18 @@ void prStmList(tree::Print* print, tree::StmList* stms) {
 }
 
 
-void emitProc(std::ostream& out, frag::ProcFrag* f) {
+void emitProc(std::ostream& out, frag::ProcFrag* f)
+{
 	tree::Print* print = new tree::Print(out);
 
-	tree::Stm* x = f->m_body;
-	print->prStm(x); //ok
+//	tree::Stm* x = f->m_body;
+//	print->prStm(x); //ok
 
-//	tree::StmList* stms = canon::Canon::linearize(f->m_body);
-//	prStmList(print, stms); //ok
-//	canon::BasicBlocks* b = new canon::BasicBlocks(stms);
-//	tree::StmList* traced = (new canon::TraceSchedule(b))->m_stms;
-//	prStmList(print, traced); //ok
+	tree::StmList* stms = canon::Canon::linearize(f->m_body);
+//	prStmList(print, stms);
+	canon::BasicBlocks* b = new canon::BasicBlocks(stms);
+	tree::StmList* traced = (new canon::TraceSchedule(b))->m_stms;
+	prStmList(print, traced);
 }
 
 
@@ -214,6 +215,7 @@ functiondeclaration : FUNC_T ID_T '(' ')' EQ_T expr { $$ = new absyn::FunctionDe
 
 int main() {
   yyparse();
+  symbol::Symbol::free();
   return 0;
 }
 
