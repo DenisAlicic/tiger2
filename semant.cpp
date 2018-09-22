@@ -338,12 +338,6 @@ ExpTy* Semant::transExp(absyn::OpExp* e)
 	ExpTy* el = transExp(e->m_left); 
 	ExpTy* er = transExp(e->m_right); 
 
-	// if (instanceof<translate::Ex>(el->m_exp)){
-	// 	tree::Exp* x = ((translate::Ex*)(el->m_exp))->m_exp;
-	// 	if (instanceof<tree::CONST>(x))
-	// 		std::cout << "tree const" << std::endl;
-	// }
-
 	if (el == nullptr || er == nullptr) {
 		return nullptr;
 	}
@@ -457,12 +451,12 @@ ExpTy* Semant::transExp(absyn::CallExp* e)
 			return nullptr;
 		}
 
-		if (!transExp(ex->m_head)->m_ty->coerceTo(rc->m_fieldType)) {
+		if (!transExp(ex->m_head)->m_ty->coerceTo(rc->fieldType())) {
 			m_env->m_errorMsg->error(e->m_pos, "");
 			return nullptr;
 		}
 		ex = ex->m_tail;
-		rc = rc->m_tail;
+		rc = rc->tail();
 	}
 	if (ex == nullptr && !(types::RECORD::isNull(rc))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
@@ -499,12 +493,12 @@ ExpTy* Semant::transExp(absyn::RecordExp* e)
 
 	while (fe != nullptr) {
 		ExpTy* ie = transExp(fe->m_init);
-		if (rc == nullptr || ie == nullptr || !ie->m_ty->coerceTo(rc->m_fieldType) || fe->m_name != rc->m_fieldName) {
+		if (rc == nullptr || ie == nullptr || !ie->m_ty->coerceTo(rc->fieldType()) || fe->m_name != rc->fieldName()) {
 			m_env->m_errorMsg->error(e->m_pos, "");
 			return nullptr;
 		}
 		fe = fe->m_tail;
-		rc = rc->m_tail;
+		rc = rc->tail();
 	}
 
 	std::vector<translate::Exp*> arrl;
@@ -730,11 +724,11 @@ ExpTy* Semant::transVar(absyn::FieldVar* e)
 	types::RECORD* rc = (types::RECORD*)(et->m_ty->actual());
 	int count = 1;
 	while (rc != nullptr) {
-		if (rc->m_fieldName == e->m_field) {
-			return new ExpTy(m_trans->transFieldVar(et->m_exp, count), rc->m_fieldType);
+		if (rc->fieldName() == e->m_field) {
+			return new ExpTy(m_trans->transFieldVar(et->m_exp, count), rc->fieldType());
 		}
 		count++;
-		rc = rc->m_tail;
+		rc = rc->tail();
 	}
 
 	m_env->m_errorMsg->error(e->m_pos, "");
@@ -789,8 +783,8 @@ types::RECORD* Semant::transTy(absyn::RecordTy* e)
 		}
 
 		if (fl->m_tail == nullptr)
-			rc->m_tail = nullptr;
-		rc = rc->m_tail;
+			rc->setTailToNull();
+		rc = rc->tail();
 		fl = fl->m_tail;
 	}
 
@@ -917,9 +911,9 @@ translate::Exp* Semant::transDec(absyn::FunctionDec* e)
 		m_env->m_vEnv->beginScope();
 
 		translate::AccessList* al = m_level->m_formals->m_next;
-		for (types::RECORD* j = r; j != nullptr; j = j->m_tail) {
-			if (j->m_fieldName != nullptr) {
-				m_env->m_vEnv->put(j->m_fieldName, new VarEntry(j->m_fieldType, al->m_head));
+		for (types::RECORD* j = r; j != nullptr; j = j->tail()) {
+			if (j->fieldName() != nullptr) {
+				m_env->m_vEnv->put(j->fieldName(), new VarEntry(j->fieldType(), al->m_head));
 				al = al->m_next;
 			}
 		}

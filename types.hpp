@@ -12,14 +12,6 @@ namespace types {
 			virtual ~Type();
 	};
 
-	class ARRAY : public Type {
-		public:
-			Type* m_element;
-
-			ARRAY(Type* element);
-			bool coerceTo(Type* t) override;
-	};
-
 	class INT : public Type {
 		public:
 			INT();
@@ -41,17 +33,35 @@ namespace types {
 			bool coerceTo(Type* t) override;
 	};
 
-	class RECORD : public Type {
+	// example: array of int
+	class ARRAY : public Type {
 		public:
+			Type* m_element;
+
+			ARRAY(Type* element);
+			~ARRAY();
+
+			bool coerceTo(Type* t) override;
+	};
+
+	// example: {name:string, age:int}
+	class RECORD : public Type {
+		private:
 			symbol::Symbol* m_fieldName;
 			Type* m_fieldType;
 			RECORD* m_tail;
 
+		public:
 			RECORD(symbol::Symbol* fieldName = nullptr, Type* fieldType = nullptr, RECORD* tail = nullptr);
+			~RECORD();
 
 			bool coerceTo(Type* t) override;
-			void gen(symbol::Symbol* n, Type* t, RECORD* x);
+			void gen(symbol::Symbol* name, Type* type, RECORD* tail);
 			static bool isNull(RECORD* r);
+			symbol::Symbol* fieldName() const;
+			Type* fieldType() const;
+			RECORD* tail() const;
+			void setTailToNull();
 	};
 
 	class NIL : public Type {
@@ -59,21 +69,22 @@ namespace types {
 			NIL();
 
 			bool coerceTo(Type* t) override;
-
 	};
 
+	// example: type myint = int
 	class NAME : public Type {
 		private: 
+			symbol::Symbol* m_name;
 			Type* m_binding;
 
 		public:
-			 symbol::Symbol* m_name;
+			NAME(symbol::Symbol* name);
+			~NAME();
 
-			 NAME(symbol::Symbol* name);
-			 bool isLoop();
-			 Type* actual() override;
-			 bool coerceTo(Type* t) override;
-			 void bind(Type* t);
+			Type* actual() override;
+			bool coerceTo(Type* t) override;
+			bool isLoop();
+			void bind(Type* t);
 	};
 };
 

@@ -45,6 +45,7 @@ void emitProc(std::ostream& out, frag::ProcFrag* f)
 	canon::BasicBlocks* b = new canon::BasicBlocks(stms);
 	tree::StmList* traced = (new canon::TraceSchedule(b))->m_stms;
 	prStmList(print, traced);
+
 }
 
 

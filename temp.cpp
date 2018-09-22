@@ -41,11 +41,8 @@ LabelList::LabelList(Label* head, LabelList* tail)
 
 LabelList::~LabelList()
 {
-	LabelList* x = this;
-	while (x != nullptr) {
-		delete x->m_head;
-		x = x->m_tail;
-	}
+	// delete m_head;
+	// delete m_tail;
 }
 
 Label* LabelList::head() const
@@ -74,11 +71,8 @@ TempList* TempList::tail() const
 
 TempList::~TempList()
 {
-	TempList* x = this;
-	while (x != nullptr) {
-		delete x->m_head;
-		x = x->m_tail;
-	}
+	// delete m_head;
+	// delete m_tail;
 }
 
 std::string DefaultMap::tempMap(Temp* temp) const
@@ -100,6 +94,6 @@ std::string CombineMap::tempMap(Temp* temp) const
 
 CombineMap::~CombineMap()
 {
-	delete m_tmap1;
-	delete m_tmap2;
+	// delete m_tmap1;
+	// delete m_tmap2;
 }

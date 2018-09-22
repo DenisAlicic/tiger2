@@ -56,8 +56,8 @@ frame::Frame* MipsFrame::newFrame(temp::Label* name, util::BoolList* formals)
 	MipsFrame* ret = new MipsFrame();
 	ret->m_name = name;
 	temp::TempList* argReg = m_argRegs;
-	for (util::BoolList* f = formals; f != nullptr; f = f->m_tail, argReg = argReg->tail()) {
-		frame::Access* a = ret->allocLocal(f->m_head);
+	for (util::BoolList* f = formals; f != nullptr; f = f->tail(), argReg = argReg->tail()) {
+		frame::Access* a = ret->allocLocal(f->head());
 		ret->m_formals = new frame::AccessList(a, ret->m_formals);
 		if (argReg != nullptr) {
 			ret->m_saveArgs.push_back(new tree::MOVE(a->exp(new tree::TEMP(m_fp)), new tree::TEMP(argReg->head())));

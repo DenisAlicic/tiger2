@@ -8,6 +8,17 @@ BoolList::BoolList(bool head, BoolList* tail)
 
 BoolList::~BoolList()
 {
-	delete m_tail;
+	// delete m_tail;
+}
+
+
+bool BoolList::head() const
+{
+	return m_head;
+}
+
+BoolList* BoolList::tail() const
+{
+	return m_tail;
 }
 

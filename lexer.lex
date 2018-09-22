@@ -92,7 +92,9 @@
 }
 
 \"[\\ A-Za-z_0-9.]*\" {
-	yylval.s = new std::string(yytext);
+	std::string* str = new std::string(yytext);
+	*str = str->substr(1, str->length()-2);
+	yylval.s = str;
 	return STRING_T;
 }
 
