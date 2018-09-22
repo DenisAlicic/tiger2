@@ -13,6 +13,7 @@ namespace canon {
             StmListList(tree::StmList* h,StmListList* t);
             ~StmListList();
     };
+    //BasicBlocks groups statements into sequences of straight-line code
     class BasicBlocks {
         public:
             StmListList*  m_blocks;
@@ -75,15 +76,15 @@ namespace canon {
             static StmExpList* reorder(tree::ExpList* exps);
             static tree::StmList* linear(tree::SEQ* s, tree::StmList* l);
             static tree::StmList* linear(tree::Stm* s, tree::StmList* l);
+            //Linearize removes ESEQs and moves te CALLs to top level
             static tree::StmList* linearize(tree::Stm* s); 
     };
-    
+    //TraceSchedule orders the blocks so that every CJUMP is followed by its "false" label
     class TraceSchedule {
         public:
             tree::StmList* m_stms;
             BasicBlocks* m_theBlocks;
             std::map<temp::Label*, tree::StmList*>* m_table = new std::map<temp::Label*, tree::StmList*>();
-            //TODO staviti u konstruktor pravljenje mape ako je potrebno
             
             tree::StmList* getLast(tree::StmList* block);
             void trace(tree::StmList* l);
