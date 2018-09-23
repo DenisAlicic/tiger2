@@ -10,10 +10,15 @@ namespace frag {
 	class Frag {
 		public:
 			Frag* m_next;
+
 			Frag();
-			virtual ~Frag(){} // should this class be abstract?
+			virtual ~Frag() {}
 	};
 
+	// example: 
+	// L16:
+	// .word 2
+	// .asciiz "\n"
 	class DataFrag : public Frag {
 		public:
 			temp::Label* m_label;

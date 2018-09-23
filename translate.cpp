@@ -1,4 +1,5 @@
 #include "translate.hpp"
+#include "util.hpp"
 #include <iostream>
 
 using namespace translate;
@@ -7,8 +8,6 @@ template<typename Base, typename T>
 inline bool instanceof(const T *ptr) {
     return dynamic_cast<const Base*>(ptr) != nullptr;
 }
-
-
 
 Ex::Ex(tree::Exp* exp)
 	: m_exp(exp)
@@ -29,15 +28,23 @@ tree::Stm* Ex::unCx(temp::Label* t, temp::Label* f)
 	return new tree::CJUMP(tree::NE, m_exp, new tree::CONST(0), t, f);
 }
 
+// converts to 1 or 0 
 tree::Exp* Cx::unEx()
 {
 	temp::Temp* r = new temp::Temp();
 	temp::Label* t = new temp::Label();
 	temp::Label* f = new temp::Label();
+
 	return new tree::ESEQ(
-			new tree::SEQ(new tree::MOVE(new tree::TEMP(r), new tree::CONST(1)),
-					new tree::SEQ(unCx(t, f),
-							new tree::SEQ(new tree::LABEL(f), new tree::SEQ(new tree::MOVE(new tree::TEMP(r), new tree::CONST(0)), new tree::LABEL(t))))),
+			new tree::SEQ(
+				new tree::MOVE(new tree::TEMP(r), new tree::CONST(1)),
+			new tree::SEQ(
+				unCx(t, f),  // still virtual here
+			new tree::SEQ(
+				new tree::LABEL(f), 
+			new tree::SEQ(
+				new tree::MOVE(new tree::TEMP(r), new tree::CONST(0)),
+				new tree::LABEL(t))))), 
 			new tree::TEMP(r));
 }
 
@@ -97,30 +104,28 @@ Access* Level::allocLocal(bool escape)
 }
 
 RelCx::RelCx(int oper, Exp* left, Exp* right)
+	: m_left(left), m_right(right)
 {
 	switch (oper) {
 		case tree::EQ:
 			m_oper = tree::EQ;
-			break;// ==
+			break;
 		case tree::NE:
 			m_oper = tree::NE;
-			break;// !=
+			break;
 		case tree::LT:
 			m_oper = tree::LT;
-			break;// <
+			break;
 		case tree::LE:
 			m_oper = tree::LE;
-			break;// <=
+			break;
 		case tree::GT:
 			m_oper = tree::GT;
-			break;// >
+			break;
 		case tree::GE:
 			m_oper = tree::GE;
-			break;// >=
+			break;
 	}
-
-	m_left = left;
-	m_right = right;
 }
 
 tree::Stm* RelCx::unCx(temp::Label* t, temp::Label* f)
@@ -140,37 +145,53 @@ tree::Exp* ForExp::unEx()
 
 tree::Stm* ForExp::unNx()
 {
-
 	Access* hbound = m_currentL->allocLocal(true);
 	temp::Label* begin = new temp::Label();
-	temp::Label* goon = new temp::Label();
+	temp::Label* increment = new temp::Label();
 
 	return new tree::SEQ(
-			new tree::MOVE(
-					m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())), m_low->unEx()),
-			new tree::SEQ(new tree::MOVE(
-					hbound->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
-					m_high->unEx()),
-					new tree::SEQ(
-							new tree::CJUMP(tree::LE, m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
-									hbound->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())), begin, m_out),
-							new tree::SEQ(new tree::LABEL(begin), new tree::SEQ(m_body->unNx(),
-									new tree::SEQ(new tree::CJUMP(tree::LT, m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
-											hbound->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
-											goon, m_out),
-											new tree::SEQ(
-													new tree::LABEL(
-															goon),
-													new tree::SEQ(new tree::MOVE(m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
-															new tree::BINOP(tree::PLUS,
-																	m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
-																	new tree::CONST(1))),
-															new tree::SEQ(new tree::JUMP(begin), new tree::LABEL(m_out))))))))));
+		new tree::MOVE(
+			m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())), 
+			m_low->unEx()), // init var (i = low)
+	new tree::SEQ(
+		new tree::MOVE(
+			hbound->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+			m_high->unEx()), // init hbound
+	new tree::SEQ(
+		new tree::CJUMP(
+			tree::LE,
+			m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+			hbound->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+			begin,
+			m_out), // check if i <= hbound
+	new tree::SEQ(
+		new tree::LABEL(begin),
+	new tree::SEQ(
+		m_body->unNx(),
+	new tree::SEQ(
+		new tree::CJUMP(
+			tree::LT,
+			m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+			hbound->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+			increment,
+			m_out), // check if i < hbound
+	new tree::SEQ(
+		new tree::LABEL(increment),
+	new tree::SEQ(
+		new tree::MOVE(
+			m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+			new tree::BINOP(
+				tree::PLUS,
+				m_var->m_acc->exp(new tree::TEMP(m_currentL->m_frame->FP())),
+				new tree::CONST(1))), // i++
+	new tree::SEQ(
+		new tree::JUMP(begin), 
+		new tree::LABEL(m_out))))))))));
 }
 
 tree::Stm* ForExp::unCx(temp::Label* t, temp::Label* f)
 {
-	std::cerr << "ForExp.unEx() should not be called." << std::endl;
+	std::cerr << "cannot apply ForExp.unEx()" << std::endl;
 	return nullptr;
 }
 

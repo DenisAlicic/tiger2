@@ -18,6 +18,7 @@ namespace translate {
 			virtual tree::Stm* unCx(temp::Label* t, temp::Label* f) = 0;
 	};
 
+	// expression, represented as a Tree.Exp
 	class Ex : public Exp {
 		public:
 			tree::Exp* m_exp;
@@ -27,13 +28,26 @@ namespace translate {
 			tree::Stm* unNx() override;
 			tree::Stm* unCx(temp::Label* t, temp::Label* f) override;
 	};
-
+	
+	// conditional
 	class Cx : public Exp {
 		public:
 			tree::Exp* unEx() override;
 			tree::Stm* unNx() override;
 	};
 
+	class RelCx : public Cx {
+		public:
+			int m_oper;
+			Exp* m_left;
+			Exp* m_right;
+
+			RelCx(int oper = 0, Exp* left = nullptr, Exp* right = nullptr);
+			tree::Stm* unCx(temp::Label* t, temp::Label* f) override;
+	};
+
+
+	// no result, represented as a Tree statement
 	class Nx : public Exp {
 		public:
 			tree::Stm* m_stm;
@@ -43,7 +57,9 @@ namespace translate {
 			tree::Stm* unNx() override;
 			tree::Stm* unCx(temp::Label* t, temp::Label* f) override;
 	};
-
+	
+	// A Level is basically a Frame that knows the Frame of its parent
+	// Wrapper around frame::Frame
 	class Level;
 
 	class Access {
@@ -64,26 +80,19 @@ namespace translate {
 
 	class Level {
 		public:
-			frame::Frame* m_frame;
-			Level* m_parent;
-			AccessList* m_formals = nullptr;
+			frame::Frame* m_frame; // Stack frame that we enhance with static link support. 
+			Level* m_parent; //	Level of the enclosing function
+			AccessList* m_formals = nullptr; // Accesses to the formal arguments. 
 
 			Level(Level* parent, symbol::Symbol* name, util::BoolList* fmls);
 			Level(frame::Frame* frm);
+
 			Access* staticLink();
+			// Allocate a new local variable.
 			Access* allocLocal(bool escape);
 	};
 
-	class RelCx : public Cx {
-		public:
-			int m_oper = 0;
-			Exp* m_left = nullptr;
-			Exp* m_right = nullptr;
-
-			RelCx(int oper, Exp* left, Exp* right);
-			tree::Stm* unCx(temp::Label* t, temp::Label* f) override;
-	};
-
+	// increment is always by 1
 	class ForExp : public Exp {
 		public:
 			Level* m_currentL;
