@@ -378,14 +378,15 @@ Exp* Translate::transCallExp(Level* currentL, Level* dest, temp::Label* name, st
 	for (int i = args_value.size() - 1; i >= 0; i--)
 		args = new tree::ExpList(((Exp*)args_value[i])->unEx(), args);
 
-	// setup fp
+	// setup fp (static link)
 	Level* l = currentL;
 	tree::Exp* currentFP = new tree::TEMP(l->m_frame->FP());
 	while (l != dest->m_parent) {
-		currentFP = l->staticLink()->m_acc->exp(currentFP); // first formal argument 
+		currentFP = l->staticLink()->m_acc->exp(currentFP); 
 		l = l->m_parent;
 	}
 
+	// static link is always first in the list of args
 	args = new tree::ExpList(currentFP, args);
 	return new Ex(new tree::CALL(new tree::NAME(name), args));
 } 

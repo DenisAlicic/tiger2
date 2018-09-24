@@ -58,27 +58,33 @@ namespace canon {
     };
     class Canon {
         public:
+			static StmExpList* m_nopNull;
+
             Canon();
             static bool isNop(tree::Stm* a);
+			static bool commute(tree::Stm* a, tree::Exp* b);
             static tree::Stm* seq(tree::Stm* a, tree::Stm* b);
-            static bool commute(tree::Stm* a, tree::Exp* b);
+
+			// pull all the ESEQ s out of a statement or expression
             static tree::Stm* do_stm(tree::SEQ* s);
             static tree::Stm* do_stm(tree::MOVE* s);
             static tree::Stm* do_stm(tree::Exp* s);
             static tree::Stm* do_stm(tree::Stm* s);
-            static tree::Stm* reorder_stm(tree::Stm* s);
             static tree::ESEQ* do_exp(tree::ESEQ* e);
             static tree::ESEQ* do_exp(tree::Exp* e);
+
+
+			// The reorder function takes a list of expressions and returns a pair of (statement, expression-list). The statement contains all the things that must be executed before the expression-list When there are no ESEQ s at all we will use EXP ( CONST 0), which does nothing, as the statement.
+            static StmExpList* reorder(tree::ExpList* exps);
+			static tree::Stm* reorder_stm(tree::Stm* s);
             static tree::ESEQ* reorder_exp(tree::Exp* e);
 
-            static StmExpList* m_nopNull;
-
-            static StmExpList* reorder(tree::ExpList* exps);
+			//Linearize removes ESEQs and moves te CALLs to top level
+			static tree::StmList* linearize(tree::Stm* s); 
             static tree::StmList* linear(tree::SEQ* s, tree::StmList* l);
             static tree::StmList* linear(tree::Stm* s, tree::StmList* l);
-            //Linearize removes ESEQs and moves te CALLs to top level
-            static tree::StmList* linearize(tree::Stm* s); 
     };
+
     //TraceSchedule orders the blocks so that every CJUMP is followed by its "false" label
     class TraceSchedule {
         public:

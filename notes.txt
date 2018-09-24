@@ -42,3 +42,15 @@ Some of these items (1, 3, 9, and 11) depend on exact knowledge of the frame siz
 To implement 7, the Translate phase should generate a move instruction MOVE ( RV , body ) that puts the result of evaluating the body in the return value ( RV ) location specified by the machine-specific frame RV.
 
 Item 4 (moving incoming formal parameters), and 5 and 8 (the saving and restoring of callee-save registers),should be done by a function procEntryExit1.
+
+canon:
+First, a tree is rewritten into a
+list of canonical trees without SEQ or ESEQ nodes; then this list is grouped
+into a set of basic blocks, which contain no internal jumps or labels; then
+the basic blocks are ordered into a set of traces in which every CJUMP is
+immediately followed by its false label.
+
+canonical trees as having these properties:
+1. No SEQ or ESEQ .
+2. The parent of each CALL is either EXP (. . .) or MOVE ( TEMP t, . . .).
+1
