@@ -195,23 +195,37 @@ tree::Stm* ForExp::unCx(temp::Label* t, temp::Label* f)
 	return nullptr;
 }
 
-IfExp::IfExp(Exp* test, Exp* e1, Exp* e2)
-	: m_test(test), m_e1(e1), m_e2(e2)
+IfExp::IfExp(Exp* test, Exp* thenexp, Exp* elseexp)
+	: m_test(test), m_thenexp(thenexp), m_elseexp(elseexp)
 {}
 
+// returns then or else branch
 tree::Exp* IfExp::unEx()
 {
-	temp::Temp* r = new temp::Temp();
+	temp::Temp* resultexp = new temp::Temp();
 	temp::Label* join = new temp::Label();
 	temp::Label* t = new temp::Label();
 	temp::Label* f = new temp::Label();
 
-	tree::Exp* tmp = new tree::ESEQ(
-			new tree::SEQ(m_test->unCx(t, f), new tree::SEQ(new tree::LABEL(t), new tree::SEQ(new tree::MOVE(new tree::TEMP(r), m_e1->unEx()),
-					new tree::SEQ(new tree::JUMP(join),
-							new tree::SEQ(new tree::LABEL(f), new tree::SEQ(new tree::MOVE(new tree::TEMP(r),m_e2->unEx()), new tree::LABEL(join))))))),
-			new tree::TEMP(r));
-	return tmp;
+	return new tree::ESEQ(
+				new tree::SEQ(
+					m_test->unCx(t, f),
+				new tree::SEQ(
+					new tree::LABEL(t),
+				new tree::SEQ(
+					new tree::MOVE(
+						new tree::TEMP(resultexp), 
+						m_thenexp->unEx()),
+				new tree::SEQ(
+					new tree::JUMP(join),
+				new tree::SEQ(
+					new tree::LABEL(f), 
+				new tree::SEQ(
+					new tree::MOVE(
+						new tree::TEMP(resultexp),
+						m_elseexp->unEx()),
+					new tree::LABEL(join))))))), 
+			new tree::TEMP(resultexp));
 }
 
 tree::Stm* IfExp::unNx()
@@ -220,11 +234,28 @@ tree::Stm* IfExp::unNx()
 	temp::Label* t = new temp::Label();
 	temp::Label* f = new temp::Label();
 
-	if (m_e2 == nullptr)
-		return new tree::SEQ(m_test->unCx(t, join), new tree::SEQ(new tree::LABEL(t), new tree::SEQ(m_e1->unNx(), new tree::LABEL(join))));
-	else
-		return new tree::SEQ(m_test->unCx(t, f), new tree::SEQ(new tree::LABEL(t), new tree::SEQ(m_e1->unNx(),
-				new tree::SEQ(new tree::JUMP(join), new tree::SEQ(new tree::LABEL(f), new tree::SEQ(m_e2->unNx(), new tree::LABEL(join)))))));
+	if (m_elseexp == nullptr)
+		return new tree::SEQ(
+					m_test->unCx(t, join), 
+				new tree::SEQ(
+					new tree::LABEL(t), 
+				new tree::SEQ(
+					m_thenexp->unNx(),
+					new tree::LABEL(join))));
+
+	return new tree::SEQ(
+				m_test->unCx(t, f),
+			new tree::SEQ(
+				new tree::LABEL(t), 
+			new tree::SEQ(
+				m_thenexp->unNx(), 
+			new tree::SEQ(
+				new tree::JUMP(join),
+			new tree::SEQ(
+				new tree::LABEL(f), 
+			new tree::SEQ(
+				m_elseexp->unNx(), 
+				new tree::LABEL(join)))))));
 }
 
 tree::Stm* IfExp::unCx(temp::Label* t, temp::Label* f)
@@ -246,8 +277,18 @@ tree::Stm* WhileExp::unNx()
 {
 	temp::Label* begin = new temp::Label();
 	temp::Label* t = new temp::Label();
-	return new tree::SEQ(new tree::LABEL(begin), new tree::SEQ(m_test->unCx(t, m_out),
-			new tree::SEQ(new tree::LABEL(t), new tree::SEQ(m_body->unNx(), new tree::SEQ(new tree::JUMP(begin), new tree::LABEL(m_out))))));
+
+	return new tree::SEQ(
+				new tree::LABEL(begin), 
+			new tree::SEQ(
+				m_test->unCx(t, m_out),
+			new tree::SEQ(
+				new tree::LABEL(t), 
+			new tree::SEQ(
+				m_body->unNx(), 
+			new tree::SEQ(
+				new tree::JUMP(begin), 
+				new tree::LABEL(m_out))))));
 }
 
 tree::Stm* WhileExp::unCx(temp::Label* t, temp::Label* f)
@@ -257,7 +298,6 @@ tree::Stm* WhileExp::unCx(temp::Label* t, temp::Label* f)
 }
 
 int Library::WORDSIZE = 4;
-std::unordered_map<temp::Label*, std::string> Library::hsLab2Str;
 
 Translate::Translate(frame::Frame* f)
 	: m_frame(f)
@@ -276,11 +316,8 @@ void Translate::addFrag(frag::Frag* frag)
 
 void Translate::procEntryExit(Level* level, Exp* body, bool returnValue)
 {
-	tree::Stm* b = nullptr;
-	if (returnValue) {
-		b = new tree::MOVE(new tree::TEMP(level->m_frame->RV()), body->unEx());
-	} else
-		b = body->unNx();
+	tree::Stm* b = (returnValue) ? new tree::MOVE(new tree::TEMP(level->m_frame->RV()), body->unEx())
+								 : body->unNx();
 
 	b = level->m_frame->procEntryExit1(b);
 	addFrag(new frag::ProcFrag(b, level->m_frame));
@@ -318,8 +355,14 @@ Exp* Translate::transOpExp(int oper, Exp* left, Exp* right)
 
 Exp* Translate::transStringRelExp(Level* currentL, int oper, Exp* left, Exp* right)
 {
-	tree::Exp* comp = currentL->m_frame->externalCall("stringEqual",
-			new tree::ExpList(left->unEx(), new tree::ExpList(right->unEx(), nullptr)));
+	tree::Exp* comp = currentL->m_frame->externalCall(
+										"stringEqual",
+										new tree::ExpList(
+											left->unEx(), 
+										new tree::ExpList(
+											right->unEx(),
+											nullptr)));
+
 	return new RelCx(oper, new Ex(comp), new Ex(new tree::CONST(1)));
 }
 
@@ -330,14 +373,16 @@ Exp* Translate::transAssignExp(Exp* lvalue, Exp* exp)
 
 Exp* Translate::transCallExp(Level* currentL, Level* dest, temp::Label* name, std::vector<Exp*>& args_value)
 {
+	// setup arguments
 	tree::ExpList* args = nullptr;
-	for (int i = args_value.size() - 1; i >= 0; --i) {
+	for (int i = args_value.size() - 1; i >= 0; i--)
 		args = new tree::ExpList(((Exp*)args_value[i])->unEx(), args);
-	}
+
+	// setup fp
 	Level* l = currentL;
 	tree::Exp* currentFP = new tree::TEMP(l->m_frame->FP());
-	while (dest->m_parent != l) {
-		currentFP = l->staticLink()->m_acc->exp(currentFP);
+	while (l != dest->m_parent) {
+		currentFP = l->staticLink()->m_acc->exp(currentFP); // first formal argument 
 		l = l->m_parent;
 	}
 
@@ -348,8 +393,9 @@ Exp* Translate::transCallExp(Level* currentL, Level* dest, temp::Label* name, st
 Exp* Translate::transStdCallExp(Level* currentL, temp::Label* name, std::vector<Exp*>& args_value)
 {
 	tree::ExpList* args = nullptr;
-	for (int i = args_value.size() - 1; i >= 0; --i)
+	for (int i = args_value.size() - 1; i >= 0; i--)
 		args = new tree::ExpList(((Exp*)args_value[i])->unEx(), args);
+
 	return new Ex(currentL->m_frame->externalCall(name->toString(), args));
 }
 
@@ -358,43 +404,65 @@ Exp* Translate::stmcat(Exp* e1, Exp* e2)
 	if (e1 == nullptr) {
 		if (e2 != nullptr)
 			return new Nx(e2->unNx());
-		else
-			return transNoExp();
-	} else if (e2 == nullptr)
+		return transNoExp();
+	} 
+	
+	if (e2 == nullptr)
 		return new Nx(e1->unNx());
-	else
-		return new Nx(new tree::SEQ(e1->unNx(), e2->unNx()));
+
+	return new Nx(new tree::SEQ(e1->unNx(), e2->unNx()));
 }
 
 Exp* Translate::exprcat(Exp* e1, Exp* e2)
 {
-	if (e1 == nullptr) {
+	if (e1 == nullptr) 
 		return new Ex(e2->unEx());
-	} else {
-		return new Ex(new tree::ESEQ(e1->unNx(), e2->unEx()));
-	}
+
+	return new Ex(new tree::ESEQ(e1->unNx(), e2->unEx()));
 }
 
 Exp* Translate::transRecordExp(Level* currentL, std::vector<Exp*>& field)
 {
 	temp::Temp* addr = new temp::Temp();
-	tree::Exp* rec_id = currentL->m_frame->externalCall("allocRecord",
-			new tree::ExpList(new tree::CONST((field.size() == 0 ? 1 : field.size()) * Library::WORDSIZE), nullptr));
+
+	tree::Exp* rec_id = currentL->m_frame->externalCall(
+											"allocRecord",
+											new tree::ExpList(
+												new tree::CONST((field.size() == 0 ? 1 : field.size()) * Library::WORDSIZE),
+												nullptr));
 
 	tree::Stm* stm = transNoExp()->unNx();
-	for (int i = field.size() - 1; i >= 0; --i) {
-		tree::Exp* offset = new tree::BINOP(tree::PLUS, new tree::TEMP(addr), new tree::CONST(i * Library::WORDSIZE));
+
+	for (int i = field.size() - 1; i >= 0; i--) {
+		tree::Exp* offset = new tree::BINOP(
+								tree::PLUS,
+								new tree::TEMP(addr), 
+								new tree::CONST(i * Library::WORDSIZE));
+
 		tree::Exp* value = (field[i])->unEx();
-		stm = new tree::SEQ(new tree::MOVE(new tree::MEM(offset), value), stm);
+		// store a  value in the offset
+		stm = new tree::SEQ(
+					new tree::MOVE(new tree::MEM(offset), value),
+					stm);
 	}
 
-	return new Ex(new tree::ESEQ(new tree::SEQ(new tree::MOVE(new tree::TEMP(addr), rec_id), stm), new tree::TEMP(addr)));
+	// store record id in addr and return addr
+	return new Ex(new tree::ESEQ(
+					new tree::SEQ(
+						new tree::MOVE(new tree::TEMP(addr), rec_id), 
+						stm),
+					new tree::TEMP(addr)));
 }
 
 Exp* Translate::transArrayExp(Level* currentL, Exp* init, Exp* size)
 {
-	tree::Exp* alloc = currentL->m_frame->externalCall("initArray",
-			new tree::ExpList(size->unEx(), new tree::ExpList(init->unEx(), nullptr)));
+	tree::Exp* alloc = currentL->m_frame->externalCall(
+											"initArray",
+											new tree::ExpList(
+												size->unEx(), 
+											new tree::ExpList(
+												init->unEx(),
+												nullptr)));
 	return new Ex(alloc);
 }
 
@@ -420,13 +488,15 @@ Exp* Translate::transBreakExp(temp::Label* l)
 
 Exp* Translate::transSimpleVar(Access* acc, Level* currentL)
 {
-	tree::Exp* e = new tree::TEMP(currentL->m_frame->FP());
+	tree::Exp* currentFP = new tree::TEMP(currentL->m_frame->FP());
+
 	Level* l = currentL;
 	while (l != acc->m_home) {
-		e = l->staticLink()->m_acc->exp(e);
+		currentFP = l->staticLink()->m_acc->exp(currentFP);
 		l = l->m_parent;
 	}
-	return new Ex(acc->m_acc->exp(e));
+
+	return new Ex(acc->m_acc->exp(currentFP));
 }
 
 Exp* Translate::transSubscriptVar(Exp* var, Exp* index)
@@ -439,6 +509,6 @@ Exp* Translate::transSubscriptVar(Exp* var, Exp* index)
 Exp* Translate::transFieldVar(Exp* var, int fig)
 {
 	tree::Exp* rec_addr = var->unEx();
-	tree::Exp* rec_offset = new tree::CONST(fig*Library::WORDSIZE);
+	tree::Exp* rec_offset = new tree::CONST(fig * Library::WORDSIZE);
 	return new Ex(new tree::MEM(new tree::BINOP(tree::PLUS, rec_addr, rec_offset)));
 }

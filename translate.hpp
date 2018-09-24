@@ -109,10 +109,10 @@ namespace translate {
 	class IfExp : public Exp {
 		public:
 			Exp* m_test;
-			Exp* m_e1;
-			Exp* m_e2;
+			Exp* m_thenexp;
+			Exp* m_elseexp;
 
-			IfExp(Exp* test, Exp* e1, Exp* e2);
+			IfExp(Exp* test, Exp* thenexp, Exp* elseexp);
 			tree::Exp* unEx() override;
 			tree::Stm* unNx() override;
 			tree::Stm* unCx(temp::Label* t, temp::Label* f) override;
@@ -120,11 +120,11 @@ namespace translate {
 
 	class WhileExp : public Exp {
 		public:
-			Exp* m_test = nullptr;
-			Exp* m_body = nullptr;
-			temp::Label* m_out = nullptr;
+			Exp* m_test;
+			Exp* m_body;
+			temp::Label* m_out;
 
-			WhileExp(Exp* test, Exp* body, temp::Label* out);
+			WhileExp(Exp* test = nullptr, Exp* body = nullptr, temp::Label* out = nullptr);
 			tree::Exp* unEx() override;
 			tree::Stm* unNx() override;
 			tree::Stm* unCx(temp::Label* t, temp::Label* f) override;
@@ -133,7 +133,6 @@ namespace translate {
 	class Library {
 		public:
 			static int WORDSIZE;
-			static std::unordered_map<temp::Label*, std::string> hsLab2Str;
 	};
 
 	class Translate {
