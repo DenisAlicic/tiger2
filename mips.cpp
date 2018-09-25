@@ -27,7 +27,6 @@ InReg::InReg()
 
 tree::Exp* InReg::exp(tree::Exp* framePtr)
 {
-
 	return new tree::TEMP(m_reg);
 }
 
@@ -69,6 +68,7 @@ frame::Frame* MipsFrame::newFrame(temp::Label* name, util::BoolList* formals)
 frame::Access* MipsFrame::allocLocal(bool escape)
 {
 	if (escape) {
+		// it always escapes in tiger
 		frame::Access* ret = new InFrame(this, allocDown);
 		allocDown -= translate::Library::WORDSIZE;
 		return ret;
@@ -80,7 +80,8 @@ frame::Access* MipsFrame::allocLocal(bool escape)
 tree::Stm* MipsFrame::procEntryExit1(tree::Stm* body)
 {
 
-	// save escaping args
+	// save args in frame
+	// ex: MOVE( MEM( BINOP(PLUS, TEMP t0, CONST 0)), TEMP t5)
 	for (unsigned i = 0; i < m_saveArgs.size(); ++i)
 		body = new tree::SEQ((tree::MOVE*)m_saveArgs[i], body);
 
@@ -88,6 +89,7 @@ tree::Stm* MipsFrame::procEntryExit1(tree::Stm* body)
 	frame::Access* raAcc = allocLocal(true); // local var for return address register
 
 	// save callee-save registers
+	// ex: MOVE( MEM( BINOP(PLUS, TEMP t0, CONST -16)), TEMP t26) ....
 	std::vector<frame::Access*> calleeAcc(m_numOfcalleeSaves);
 	temp::TempList* calleeTemp = m_calleeSaves;
 	for (int i = 0; i < m_numOfcalleeSaves; ++i, calleeTemp = calleeTemp->tail()) {
@@ -95,19 +97,25 @@ tree::Stm* MipsFrame::procEntryExit1(tree::Stm* body)
 		body = new tree::SEQ(new tree::MOVE(calleeAcc[i]->exp(new tree::TEMP(m_fp)), new tree::TEMP(calleeTemp->head())), body);
 	}
 
-	// save return address register
+	// save return address register 
+	// ex: MOVE( MEM( BINOP(PLUS, TEMP t0, CONST -12)), TEMP t2)
 	body = new tree::SEQ(new tree::MOVE(raAcc->exp(new tree::TEMP(m_fp)), new tree::TEMP(m_ra)), body);
 
 	// store frame pointer using stack pointer
+	// ex: MOVE( TEMP t0, BINOP(PLUS, TEMP t1, CONST 12))
 	body = new tree::SEQ(new tree::MOVE(new tree::TEMP(m_fp), new tree::BINOP(tree::PLUS, new tree::TEMP(m_sp), new tree::CONST(-allocDown - translate::Library::WORDSIZE))), body);
+	// ex: MOVE( MEM( BINOP(PLUS, TEMP t1, CONST 4)), TEMP t0)
 	body = new tree::SEQ(new tree::MOVE(fpAcc->expFromStack(new tree::TEMP(m_sp)), new tree::TEMP(m_fp)), body);
 
-	// restore callee saved registers
+	// // restore callee saved registers
 	calleeTemp = m_calleeSaves;
 	for (int i = 0; i < m_numOfcalleeSaves; ++i, calleeTemp = calleeTemp->tail())
 		body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(calleeTemp->head()), calleeAcc[i]->exp(new tree::TEMP(m_fp))));
 
+	// restore fp and ra
+	// ex: MOVE( TEMP t2, MEM( BINOP(PLUS, TEMP t0, CONST -12)))
 	body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(m_ra), raAcc->exp(new tree::TEMP(m_fp))));
+	// ex: MOVE( TEMP t0, MEM( BINOP(PLUS, TEMP t1, CONST 4)))
 	body = new tree::SEQ(body, new tree::MOVE(new tree::TEMP(m_fp), fpAcc->expFromStack(new tree::TEMP(m_sp))));
 
 	return body;

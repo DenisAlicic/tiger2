@@ -25,10 +25,6 @@ StdFuncEntry::StdFuncEntry(translate::Level* l, temp::Label* lab, types::RECORD*
 	: FuncEntry(l, lab, params, rt)
 {}
 
-LoopVarEntry::LoopVarEntry(types::Type* ty, translate::Access* acc, bool isf)
-	: VarEntry(ty, acc, isf)
-{}
-
 Env::Env(tiger::errormsg::ErrorMsg* err, translate::Level* l)
 	: m_errorMsg(err), m_root(l)
 {
@@ -51,9 +47,19 @@ void Env::initVEnv()
 	types::RECORD* formals = nullptr; 
 	types::Type* result = nullptr; 
 	translate::Level* level = nullptr;
+
+
+	sym = symbol::Symbol::symbol("stringEqual");
+	// has two arguments left and right strings
+	formals = new types::RECORD(symbol::Symbol::symbol("left"), new types::STRING(), new types::RECORD(symbol::Symbol::symbol("right"), new types::STRING(), nullptr));
+	result = new types::INT();
+	level = new translate::Level(m_root, sym, new util::BoolList(true, new util::BoolList(true, nullptr)));
+	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
+	m_stdFuncSet.insert(sym);
+	
 	
 	sym = symbol::Symbol::symbol("allocRecord");
-
+	// has one argument size of type int
 	formals = new types::RECORD(symbol::Symbol::symbol("size"), new types::INT(), nullptr);
 	result = new types::INT();
 	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
@@ -61,96 +67,21 @@ void Env::initVEnv()
 	m_stdFuncSet.insert(sym);
 	
 	sym = symbol::Symbol::symbol("initArray");
+	// has two arguments size and initial value for each element
 	formals = new types::RECORD(symbol::Symbol::symbol("size"), new types::INT(), new types::RECORD(symbol::Symbol::symbol("init"), new types::INT(), nullptr));
 	result = new types::INT();
 	level = new translate::Level(m_root, sym, new util::BoolList(true, new util::BoolList(true, nullptr)));
 	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
 	m_stdFuncSet.insert(sym);
 	
+
 	sym = symbol::Symbol::symbol("print");
+	// has one string argument
 	formals = new types::RECORD(symbol::Symbol::symbol("str"), new types::STRING(), nullptr);
 	result = new types::VOID();
 	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
 	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
 	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("flush");
-	formals = nullptr;
-	result = new types::VOID();
-	level = new translate::Level(m_root, sym, nullptr);
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("getchar");
-	formals = nullptr;
-	result = new types::STRING();
-	level = new translate::Level(m_root, sym, nullptr);
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("ord");
-	formals = new types::RECORD(symbol::Symbol::symbol("str"), new types::STRING(), nullptr);
-	result = new types::INT();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("chr");
-	formals = new types::RECORD(symbol::Symbol::symbol("i"), new types::INT(), nullptr);
-	result = new types::STRING();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("size");
-	formals = new types::RECORD(symbol::Symbol::symbol("str"), new types::STRING(), nullptr);
-	result = new types::INT();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("substring");
-	formals = new types::RECORD(symbol::Symbol::symbol("n"), new types::INT(), nullptr);
-	formals = new types::RECORD(symbol::Symbol::symbol("first"), new types::INT(), formals);
-	formals = new types::RECORD(symbol::Symbol::symbol("str"), new types::STRING(), formals);
-	result = new types::STRING();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, new util::BoolList(true, new util::BoolList(true, nullptr))));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("concat");
-	formals = new types::RECORD(symbol::Symbol::symbol("str2"), new types::STRING(), nullptr);
-	formals = new types::RECORD(symbol::Symbol::symbol("str1"), new types::STRING(), formals);
-	result = new types::STRING();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, new util::BoolList(true, nullptr)));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("not");
-	formals = new types::RECORD(symbol::Symbol::symbol("j"), new types::INT(), nullptr);
-	result = new types::INT();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("exit");
-	formals = new types::RECORD(symbol::Symbol::symbol("k"), new types::INT(), nullptr);
-	result = new types::VOID();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	sym = symbol::Symbol::symbol("printi");
-	formals = new types::RECORD(symbol::Symbol::symbol("i"), new types::INT(), nullptr);
-	result = new types::VOID();
-	level = new translate::Level(m_root, sym, new util::BoolList(true, nullptr));
-	m_vEnv->put(sym, new StdFuncEntry(level, new temp::Label(sym), formals, result));
-	m_stdFuncSet.insert(sym);
-	
-	
-	sym = symbol::Symbol::symbol("arr");
-	translate::Access* acc = m_root->allocLocal(true);
-	m_vEnv->put(sym, new VarEntry(new types::ARRAY(new types::INT()), acc));
 }
 
 
@@ -167,6 +98,7 @@ frag::Frag* Semant::transProg(absyn::Exp* e)
 {
 	ExpTy* et = transExp(e);
 	
+	// if an error occured return nullptr
 	if (tiger::errormsg::ErrorMsg::anyErrors) {
 		return nullptr;
 	}
@@ -270,35 +202,193 @@ void Semant::transDec0(absyn::Dec* e)
 translate::Exp* Semant::transDec(absyn::Dec* e)
 {
 	if (instanceof<absyn::VarDec>(e)) {
-		if (m_TypeDecFlag == true) {
+		if (m_TypeDecFlag == true)
 			m_TDecFlag = true;
-		}
-		if (m_FuncDecFlag == true) {
+		if (m_FuncDecFlag == true)
 			m_FDecFlag = true;
-		}
+
 		return transDec((absyn::VarDec*) e);
 	}
+
 	if (instanceof<absyn::TypeDec>(e)) {
 		if (m_TypeDecFlag == false) {
 			m_TypeDecFlag = true;
 			return transDec((absyn::TypeDec*) e);
 		}
+
 		if (m_TDecFlag == true) {
 			m_env->m_errorMsg->error(e->m_pos, "");
 			return nullptr;
 		}
 	}
+
 	if (instanceof<absyn::FunctionDec>(e)) {
 		if (m_FuncDecFlag == false) {
 			m_FuncDecFlag = true;
 			return transDec((absyn::FunctionDec*) e);
 		}
+
 		if (m_FDecFlag == true) {
 			m_env->m_errorMsg->error(e->m_pos, "");
 			return nullptr;
 		}
 	}
+
 	return nullptr;
+}
+
+void Semant::transDec0(absyn::VarDec* e){}
+
+translate::Exp* Semant::transDec(absyn::VarDec* e)
+{
+	ExpTy* et = transExp(e->m_init);
+
+	if (e->m_typ == nullptr && instanceof<absyn::NilExp>(e->m_init)) {
+		m_env->m_errorMsg->error(e->m_pos, "");
+		return nullptr;
+	}
+
+	if (et == nullptr && e->m_init == nullptr) {
+		m_env->m_errorMsg->error(e->m_pos, "");
+		return nullptr;
+	}
+
+	if (et == nullptr) {
+		et = new ExpTy(m_trans->transNilExp(), new types::NIL());
+		e->m_init = new absyn::NilExp(e->m_pos);
+	}
+
+	if (e->m_typ != nullptr && !(transExp(e->m_init)->m_ty->coerceTo((types::Type*)m_env->m_tEnv->get(e->m_typ->m_name)))) {
+		m_env->m_errorMsg->error(e->m_pos, "");
+		return nullptr;
+	}
+
+	if (e->m_init == nullptr) {
+		m_env->m_errorMsg->error(e->m_pos, "");
+		return nullptr;
+	}
+
+	translate::Access* acc = m_level->allocLocal(true);
+
+	if (e->m_typ != nullptr)
+		m_env->m_vEnv->put(e->m_name, new VarEntry((types::Type*)m_env->m_tEnv->get(e->m_typ->m_name), acc));
+	else 
+		m_env->m_vEnv->put(e->m_name, new VarEntry(transExp(e->m_init)->m_ty, acc));
+
+	return m_trans->transAssignExp(m_trans->transSimpleVar(acc, m_level), et->m_exp);
+}
+
+void Semant::transDec0(absyn::TypeDec* e)
+{
+	std::unordered_map<symbol::Symbol*, bool> hs;
+
+	for (absyn::TypeDec* i = e; i != nullptr; i = i->m_next) {
+		if (hs.find(i->m_name) != hs.end()) {
+			// it is already declared
+			m_env->m_errorMsg->error(e->m_pos, "");
+			return;
+		}
+
+		hs[i->m_name] = true;
+
+		// ex: rectype
+		m_env->m_tEnv->put(i->m_name, new types::NAME(i->m_name));
+	}
+}
+
+translate::Exp* Semant::transDec(absyn::TypeDec* e)
+{
+	for (absyn::TypeDec* i = e; i != nullptr; i = i->m_next) {
+		m_env->m_tEnv->put(i->m_name, new types::NAME(i->m_name));
+		types::NAME* field = (types::NAME*)m_env->m_tEnv->get(i->m_name);
+		// assign type with name ex: RECORD
+		field->bind(transTy(i->m_ty)->actual());
+
+		if (field->isLoop()) {
+			m_env->m_errorMsg->error(i->m_pos, "");
+			return nullptr;
+		}
+	}
+
+	for (absyn::TypeDec* i = e; i != nullptr; i = i->m_next)
+		m_env->m_tEnv->put(i->m_name, transTy(i->m_ty));
+
+	return m_trans->transNoExp();
+}
+
+void Semant::transDec0(absyn::FunctionDec* e)
+{
+	for (absyn::FunctionDec* i = e; i != nullptr; i = i->m_next) {
+		absyn::RecordTy* rt = new absyn::RecordTy(i->m_pos, i->m_params);
+		types::RECORD* r = transTy(rt);
+		if (r == nullptr)
+			return;
+		util::BoolList* bl = nullptr;
+		for (absyn::FieldList* f = i->m_params; f != nullptr; f = f->m_tail) {
+			bl = new util::BoolList(true, bl);
+		}
+
+		m_level = new translate::Level(m_level, i->m_name, bl);
+		m_env->m_vEnv->put(i->m_name, new FuncEntry(m_level, new temp::Label(i->m_name), r, transTy(i->m_result)));
+		m_level = m_level->m_parent;
+	}
+}
+
+translate::Exp* Semant::transDec(absyn::FunctionDec* e)
+{
+	std::set<symbol::Symbol*> hs;
+	ExpTy* et = nullptr;
+	for (absyn::FunctionDec* i = e; i != nullptr; i = i->m_next) {
+		if (hs.find(i->m_name) != hs.end()) {
+			m_env->m_errorMsg->error(e->m_pos, "");
+			return nullptr;
+		}
+		if (m_env->m_stdFuncSet.find(i->m_name) != m_env->m_stdFuncSet.end()) {
+			m_env->m_errorMsg->error(e->m_pos, "");
+			return nullptr;
+		}
+
+		absyn::RecordTy* rt = new absyn::RecordTy(i->m_pos, i->m_params);
+		types::RECORD* r = transTy(rt);
+		if (r == nullptr)
+			return nullptr;
+
+		util::BoolList* bl = nullptr;
+		for (absyn::FieldList* f = i->m_params; f != nullptr; f = f->m_tail) {
+			bl = new util::BoolList(true, bl);
+		}
+
+		m_level = new translate::Level(m_level, i->m_name, bl);
+		m_env->m_vEnv->beginScope();
+
+		translate::AccessList* al = m_level->m_formals->m_next;
+		for (types::RECORD* j = r; j != nullptr; j = j->tail()) {
+			if (j->fieldName() != nullptr) {
+				m_env->m_vEnv->put(j->fieldName(), new VarEntry(j->fieldType(), al->m_head));
+				al = al->m_next;
+			}
+		}
+		et = transExp(i->m_body);
+		if (et == nullptr) {
+			m_env->m_vEnv->endScope();
+			return nullptr;
+		}
+		if (!(et->m_ty->coerceTo((transTy(i->m_result)->actual())))) {
+			m_env->m_errorMsg->error(i->m_pos, "");
+			return nullptr;
+		}
+
+		if (!( instanceof<types::VOID>(et->m_ty->actual())))
+			m_trans->procEntryExit(m_level, et->m_exp, true);
+		else
+			m_trans->procEntryExit(m_level, et->m_exp, false);
+
+		m_env->m_vEnv->endScope();
+		m_level = m_level->m_parent;
+		hs.insert(i->m_name);
+	}
+
+	return m_trans->transNoExp();
 }
 
 types::Type* Semant::transTy(absyn::Ty* e)
@@ -314,7 +404,6 @@ types::Type* Semant::transTy(absyn::Ty* e)
 
 ExpTy* Semant::transExp(absyn::IntExp* e)
 {
-
 	return new ExpTy(m_trans->transIntExp(e->m_value), new types::INT());
 }
 
@@ -357,6 +446,7 @@ ExpTy* Semant::transExp(absyn::OpExp* e)
 		
 		if (instanceof<types::NIL>(el->m_ty->actual()) && instanceof<types::RECORD>(er->m_ty->actual()))
 			return new ExpTy(m_trans->transOpExp(e->m_oper, transExp(e->m_left)->m_exp, transExp(e->m_right)->m_exp), new types::INT());
+
 		if (instanceof<types::RECORD>(el->m_ty->actual()) && instanceof<types::NIL>(er->m_ty->actual()))
 			return new ExpTy(m_trans->transOpExp(e->m_oper, transExp(e->m_left)->m_exp, transExp(e->m_right)->m_exp), new types::INT());
 		
@@ -384,12 +474,8 @@ ExpTy* Semant::transExp(absyn::OpExp* e)
 	
 	if (e->m_oper < absyn::OpExp::EQ) {
 		if (instanceof<types::INT>(el->m_ty->actual()) && instanceof<types::INT>(er->m_ty->actual()))
-		{
+			return new ExpTy(m_trans->transOpExp(e->m_oper, transExp(e->m_left)->m_exp, transExp(e->m_right)->m_exp), new types::INT());
 
-			ExpTy* x = new ExpTy(m_trans->transOpExp(e->m_oper, transExp(e->m_left)->m_exp, transExp(e->m_right)->m_exp), new types::INT());
-
-			return x;
-		}
 		
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
@@ -434,10 +520,10 @@ ExpTy* Semant::transExp(absyn::AssignExp* e)
 ExpTy* Semant::transExp(absyn::CallExp* e)
 {
 	FuncEntry* fe;
-	Entry* x = (Entry*)m_env->m_vEnv->get(e->m_func); // changed void* to Entry*
+	Entry* x = (Entry*)m_env->m_vEnv->get(e->m_func);
 	
 	if (x == nullptr || !(instanceof<FuncEntry>(x))) {
-		m_env->m_errorMsg->error(e->m_pos, "Êý" + e->m_func->toString() + "");
+		m_env->m_errorMsg->error(e->m_pos,  e->m_func->toString());
 		return nullptr;
 	}
 
@@ -504,6 +590,7 @@ ExpTy* Semant::transExp(absyn::RecordExp* e)
 	std::vector<translate::Exp*> arrl;
 	for (absyn::FieldExpList* i = e->m_fields; i != nullptr; i = i->m_tail)
 		arrl.push_back(transExp(i->m_init)->m_exp);
+
 	return new ExpTy(m_trans->transRecordExp(m_level, arrl), t->actual());
 }
 
@@ -791,151 +878,3 @@ types::RECORD* Semant::transTy(absyn::RecordTy* e)
 	return r;
 }
 
-void Semant::transDec0(absyn::VarDec* e){}
-
-translate::Exp* Semant::transDec(absyn::VarDec* e)
-{
-	ExpTy* et = transExp(e->m_init);
-	if (e->m_typ == nullptr && instanceof<absyn::NilExp>(e->m_init)) {
-		m_env->m_errorMsg->error(e->m_pos, "");
-		return nullptr;
-	}
-
-	if (et == nullptr && e->m_init == nullptr) {
-		m_env->m_errorMsg->error(e->m_pos, "");
-		return nullptr;
-	}
-
-	if (et == nullptr) {
-		et = new ExpTy(m_trans->transNilExp(), new types::NIL());
-		e->m_init = new absyn::NilExp(e->m_pos);
-	}
-
-	if (e->m_typ != nullptr && !(transExp(e->m_init)->m_ty->coerceTo((types::Type*)m_env->m_tEnv->get(e->m_typ->m_name)))) {
-		m_env->m_errorMsg->error(e->m_pos, "");
-		return nullptr;
-	}
-
-	if (e->m_init == nullptr) {
-		m_env->m_errorMsg->error(e->m_pos, "");
-		return nullptr;
-	}
-
-	translate::Access* acc = m_level->allocLocal(true);
-
-	if (e->m_typ != nullptr) {
-		m_env->m_vEnv->put(e->m_name, new VarEntry((types::Type*)m_env->m_tEnv->get(e->m_typ->m_name), acc));
-	}
-	else {
-		m_env->m_vEnv->put(e->m_name, new VarEntry(transExp(e->m_init)->m_ty, acc));
-	}
-	return m_trans->transAssignExp(m_trans->transSimpleVar(acc, m_level), et->m_exp);
-}
-
-void Semant::transDec0(absyn::TypeDec* e)
-{
-	std::set<symbol::Symbol*> hs;
-
-	for (absyn::TypeDec* i = e; i != nullptr; i = i->m_next) {
-		if (hs.find(i->m_name) != hs.end()) {
-			m_env->m_errorMsg->error(e->m_pos, "");
-			return;
-		}
-
-		hs.insert(i->m_name);
-		m_env->m_tEnv->put(i->m_name, new types::NAME(i->m_name));
-	}
-}
-
-translate::Exp* Semant::transDec(absyn::TypeDec* e)
-{
-	for (absyn::TypeDec* i = e; i != nullptr; i = i->m_next) {
-		m_env->m_tEnv->put(i->m_name, new types::NAME(i->m_name));
-		((types::NAME*)m_env->m_tEnv->get(i->m_name))->bind(transTy(i->m_ty)->actual());
-		types::NAME* field = (types::NAME*)m_env->m_tEnv->get(i->m_name);
-		if (field->isLoop() == true) {
-			m_env->m_errorMsg->error(i->m_pos, "");
-			return nullptr;
-		}
-	}
-
-	for (absyn::TypeDec* i = e; i != nullptr; i = i->m_next)
-		m_env->m_tEnv->put(i->m_name, transTy(i->m_ty));
-
-	return m_trans->transNoExp();
-}
-
-void Semant::transDec0(absyn::FunctionDec* e)
-{
-	for (absyn::FunctionDec* i = e; i != nullptr; i = i->m_next) {
-		absyn::RecordTy* rt = new absyn::RecordTy(i->m_pos, i->m_params);
-		types::RECORD* r = transTy(rt);
-		if (r == nullptr)
-			return;
-		util::BoolList* bl = nullptr;
-		for (absyn::FieldList* f = i->m_params; f != nullptr; f = f->m_tail) {
-			bl = new util::BoolList(true, bl);
-		}
-
-		m_level = new translate::Level(m_level, i->m_name, bl);
-		m_env->m_vEnv->put(i->m_name, new FuncEntry(m_level, new temp::Label(i->m_name), r, transTy(i->m_result)));
-		m_level = m_level->m_parent;
-	}
-}
-
-translate::Exp* Semant::transDec(absyn::FunctionDec* e)
-{
-	std::set<symbol::Symbol*> hs;
-	ExpTy* et = nullptr;
-	for (absyn::FunctionDec* i = e; i != nullptr; i = i->m_next) {
-		if (hs.find(i->m_name) != hs.end()) {
-			m_env->m_errorMsg->error(e->m_pos, "");
-			return nullptr;
-		}
-		if (m_env->m_stdFuncSet.find(i->m_name) != m_env->m_stdFuncSet.end()) {
-			m_env->m_errorMsg->error(e->m_pos, "");
-			return nullptr;
-		}
-
-		absyn::RecordTy* rt = new absyn::RecordTy(i->m_pos, i->m_params);
-		types::RECORD* r = transTy(rt);
-		if (r == nullptr)
-			return nullptr;
-
-		util::BoolList* bl = nullptr;
-		for (absyn::FieldList* f = i->m_params; f != nullptr; f = f->m_tail) {
-			bl = new util::BoolList(true, bl);
-		}
-
-		m_level = new translate::Level(m_level, i->m_name, bl);
-		m_env->m_vEnv->beginScope();
-
-		translate::AccessList* al = m_level->m_formals->m_next;
-		for (types::RECORD* j = r; j != nullptr; j = j->tail()) {
-			if (j->fieldName() != nullptr) {
-				m_env->m_vEnv->put(j->fieldName(), new VarEntry(j->fieldType(), al->m_head));
-				al = al->m_next;
-			}
-		}
-		et = transExp(i->m_body);
-		if (et == nullptr) {
-			m_env->m_vEnv->endScope();
-			return nullptr;
-		}
-		if (!(et->m_ty->coerceTo((transTy(i->m_result)->actual())))) {
-			m_env->m_errorMsg->error(i->m_pos, "");
-			return nullptr;
-		}
-
-		if (!( instanceof<types::VOID>(et->m_ty->actual())))
-			m_trans->procEntryExit(m_level, et->m_exp, true);
-		else
-			m_trans->procEntryExit(m_level, et->m_exp, false);
-
-		m_env->m_vEnv->endScope();
-		m_level = m_level->m_parent;
-		hs.insert(i->m_name);
-	}
-
-	return m_trans->transNoExp();
-}
