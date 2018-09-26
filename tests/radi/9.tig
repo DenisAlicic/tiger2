@@ -1,0 +1,8 @@
+let
+function f(a: int):int=
+		(a)
+function f2(b: int):int=
+		(b+1)
+in
+(f(3); f2(7))
+end

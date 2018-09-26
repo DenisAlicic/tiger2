@@ -73,17 +73,6 @@ namespace temp {
 			std::string tempMap(Temp* temp) const override;
 	};
 
-	class CombineMap : public TempMap {
-		private:
-			TempMap* m_tmap1;
-			TempMap* m_tmap2;
-
-		public:
-			CombineMap(TempMap* tmap1, TempMap* tmap2);
-			~CombineMap();
-			std::string tempMap(Temp* temp) const override;
-	};
-
 }; // end of namespace
 
 #endif /* TEMP_HPP */
