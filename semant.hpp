@@ -67,51 +67,51 @@ namespace semant {
 			void initVEnv();
 	};
 
-class Semant {
-	public:
-		Env* m_env;
-		translate::Translate* m_trans;
-		translate::Level* m_level = nullptr;
-		std::stack<temp::Label*> m_loopStack;
-		bool m_TDecFlag = false, m_FDecFlag = false, m_TypeDecFlag = false, m_FuncDecFlag = false;
+    class Semant {
+        public:
+            Env* m_env;
+            translate::Translate* m_trans;
+            translate::Level* m_level = nullptr;
+            std::stack<temp::Label*> m_loopStack;
+            bool m_TDecFlag = false, m_FDecFlag = false, m_TypeDecFlag = false, m_FuncDecFlag = false;
 
-		Semant(translate::Translate* t, tiger::errormsg::ErrorMsg* err);
+            Semant(translate::Translate* t, tiger::errormsg::ErrorMsg* err);
 
-		 frag::Frag* transProg(absyn::Exp* e);
-		 ExpTy* transVar(absyn::Var* e);
-		 ExpTy* transExp(absyn::Exp* e);
-		 void transDec0(absyn::Dec* e);
-		 translate::Exp* transDec(absyn::Dec* e);
-		 types::Type* transTy(absyn::Ty* e);
-		 ExpTy* transExp(absyn::IntExp* e);
-		 ExpTy* transExp(absyn::StringExp* e);
-		 ExpTy* transExp(absyn::NilExp* e);
-		 ExpTy* transExp(absyn::VarExp* e);
-		 ExpTy* transExp(absyn::OpExp* e);
-		 ExpTy* transExp(absyn::AssignExp* e);
-		 ExpTy* transExp(absyn::CallExp* e);
-		 ExpTy* transExp(absyn::RecordExp* e);
-		 ExpTy* transExp(absyn::ArrayExp* e);
-		 ExpTy* transExp(absyn::IfExp* e);
-		 ExpTy* transExp(absyn::WhileExp* e);
-		 ExpTy* transExp(absyn::ForExp* e);
-		 ExpTy* transExp(absyn::BreakExp* e);
-		 ExpTy* transExp(absyn::LetExp* e);
-		 ExpTy* transDecList(absyn::DecList* e);
-		 ExpTy* transExp(absyn::SeqExp* e);
-		 ExpTy* transVar(absyn::SimpleVar* e);
-		 ExpTy* transVar(absyn::SubscriptVar* e);
-		 ExpTy* transVar(absyn::FieldVar* e);
-		 types::Type* transTy(absyn::NameTy* e);
-		 types::ARRAY* transTy(absyn::ArrayTy* e);
-		 types::RECORD* transTy(absyn::RecordTy* e);
-		 void transDec0(absyn::VarDec* e);
-		 translate::Exp* transDec(absyn::VarDec* e);
-		 void transDec0(absyn::TypeDec* e);
-		 translate::Exp* transDec(absyn::TypeDec* e);
-		 void transDec0(absyn::FunctionDec* e);
-		 translate::Exp* transDec(absyn::FunctionDec* e);
-};
+            frag::Frag* transProg(absyn::Exp* e);
+            ExpTy* transVar(absyn::Var* e);
+            ExpTy* transExp(absyn::Exp* e);
+            void transDec0(absyn::Dec* e);
+            translate::Exp* transDec(absyn::Dec* e);
+            types::Type* transTy(absyn::Ty* e);
+            ExpTy* transExp(absyn::IntExp* e);
+            ExpTy* transExp(absyn::StringExp* e);
+            ExpTy* transExp(absyn::NilExp* e);
+            ExpTy* transExp(absyn::VarExp* e);
+            ExpTy* transExp(absyn::OpExp* e);
+            ExpTy* transExp(absyn::AssignExp* e);
+            ExpTy* transExp(absyn::CallExp* e);
+            ExpTy* transExp(absyn::RecordExp* e);
+            ExpTy* transExp(absyn::ArrayExp* e);
+            ExpTy* transExp(absyn::IfExp* e);
+            ExpTy* transExp(absyn::WhileExp* e);
+            ExpTy* transExp(absyn::ForExp* e);
+            ExpTy* transExp(absyn::BreakExp* e);
+            ExpTy* transExp(absyn::LetExp* e);
+            ExpTy* transDecList(absyn::DecList* e);
+            ExpTy* transExp(absyn::SeqExp* e);
+            ExpTy* transVar(absyn::SimpleVar* e);
+            ExpTy* transVar(absyn::SubscriptVar* e);
+            ExpTy* transVar(absyn::FieldVar* e);
+            types::Type* transTy(absyn::NameTy* e);
+            types::ARRAY* transTy(absyn::ArrayTy* e);
+            types::RECORD* transTy(absyn::RecordTy* e);
+            void transDec0(absyn::VarDec* e);
+            translate::Exp* transDec(absyn::VarDec* e);
+            void transDec0(absyn::TypeDec* e);
+            translate::Exp* transDec(absyn::TypeDec* e);
+            void transDec0(absyn::FunctionDec* e);
+            translate::Exp* transDec(absyn::FunctionDec* e);
+    };
 
 };
 
