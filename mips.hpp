@@ -34,13 +34,13 @@ namespace mips {
 		public:
 			int allocDown = 0;
 			std::vector<tree::Stm*> m_saveArgs;
-			temp::Temp* m_fp = new temp::Temp(0);
-			temp::Temp* m_sp = new temp::Temp(1);
-			temp::Temp* m_ra = new temp::Temp(2);
-			temp::Temp* m_rv = new temp::Temp(3);
-			temp::Temp* m_zero = new temp::Temp(4);
+			temp::Temp* m_fp = new temp::Temp(0); // t0
+			temp::Temp* m_sp = new temp::Temp(1); // t1
+			temp::Temp* m_ra = new temp::Temp(2); // t2
+			temp::Temp* m_rv = new temp::Temp(3); // t3
+			temp::Temp* m_zero = new temp::Temp(4); // t4
 
-			temp::TempList* m_argRegs = new temp::TempList(new temp::Temp(5), new temp::TempList(new temp::Temp(6), new temp::TempList(new temp::Temp(7), new temp::TempList(new temp::Temp(8), nullptr))));
+			temp::TempList* m_argRegs = new temp::TempList(new temp::Temp(5), new temp::TempList(new temp::Temp(6), new temp::TempList(new temp::Temp(7), new temp::TempList(new temp::Temp(8), nullptr)))); // formal args are in registers t5..t8
 
 			temp::TempList* m_calleeSaves = nullptr;
 			temp::TempList* m_callerSaves = nullptr;
