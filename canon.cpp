@@ -18,12 +18,10 @@ BasicBlocks::BasicBlocks(tree::StmList* stms){
 }
 
 void BasicBlocks::addStm(tree::Stm* s){
-	// std::cout <<"addStm(tree::Stm* s)"  << std::endl;
     m_lastStm = m_lastStm->m_tail = new tree::StmList(s,nullptr);
 }
 
 void BasicBlocks::doStms(tree::StmList* l){
-	// std::cout << "doStms(tree::StmList* l)" << std::endl;
     if(l == nullptr){
         doStms(new tree::StmList(new tree::JUMP(m_done),nullptr));
     }
@@ -42,7 +40,6 @@ void BasicBlocks::doStms(tree::StmList* l){
 }
 
 void BasicBlocks::mkBlocks(tree::StmList* l){
-	// std::cout << "mkBlocks(tree::StmList* l)" << std::endl;
     if(l == nullptr){
         return;
     }
@@ -61,12 +58,6 @@ void BasicBlocks::mkBlocks(tree::StmList* l){
     }
 }
 
-BasicBlocks::~BasicBlocks(){
-    //TODO
-}
-
-
-
 MoveCall::MoveCall(tree::TEMP* d, tree::CALL* s)
     : m_dst(d), m_src(s)
 {}
@@ -79,13 +70,6 @@ tree::Stm* MoveCall::build(const tree::ExpList& kids){
     return new tree::MOVE(m_dst, m_src->build(kids));
 }
 
-MoveCall::~MoveCall(){
-    //TODO
-    //
-}
-
-
-
 ExpCall::ExpCall(tree::CALL* c)
     : m_call(c)
 {}
@@ -95,21 +79,12 @@ tree::ExpList* ExpCall::kids(){
 tree::Stm* ExpCall::build(const tree::ExpList& kids){
     return new tree::Exp(m_call->build(kids));
 }
-ExpCall::~ExpCall(){
-    //TODO
-}
-
 
 
 StmExpList::StmExpList(tree::Stm* s, tree::ExpList* e)
     : m_stm(s), m_exps(e)
 {}
-StmExpList::~StmExpList(){
-    //TODO
-}
 
-Canon::Canon(){
-}
 
 StmExpList* Canon::m_nopNull = new StmExpList(new tree::Exp(new tree::CONST(0)), nullptr); 
 
@@ -119,7 +94,6 @@ bool Canon::isNop(tree::Stm* a){
 }
 
 tree::Stm* Canon::seq(tree::Stm* a, tree::Stm* b){
-	// std::cout << "seq(tree::Stm* a, tree::Stm* b)" << std::endl;
     if(isNop(a)){
         return b;
     }
@@ -136,17 +110,10 @@ bool Canon::commute(tree::Stm* a, tree::Exp* b){
 }
 
 tree::Stm* Canon::do_stm(tree::SEQ* s){
-	// std::cout << "do_stm(tree::SEQ* s)" << std::endl;
-	// if (instanceof<tree::MOVE>(s->m_right))
-	// {
-	// 	std::cout << "move" << std::endl;
-	// 	exit(0);
-	// }
     return seq(do_stm(s->m_left),do_stm(s->m_right));
 }
 
 tree::Stm* Canon::do_stm(tree::MOVE* s){
-	// std::cout << "do_stm(tree::MOVE* s)" << std::endl;
     if(instanceof<tree::TEMP>(s->m_dist) && instanceof<tree::CALL>(s->m_source)) {
         return reorder_stm(new MoveCall((tree::TEMP*)(s->m_dist), (tree::CALL*)(s->m_source)));
     }
@@ -161,7 +128,6 @@ tree::Stm* Canon::do_stm(tree::MOVE* s){
 }
 
 tree::Stm* Canon::do_stm(tree::Exp* s){
-	// std::cout << "do_stm(tree::Exp* s)" << std::endl;
     if(instanceof<tree::CALL>(s->m_exp)) {
         return reorder_stm(new ExpCall((tree::CALL*)(s->m_exp)));
     }
@@ -171,7 +137,6 @@ tree::Stm* Canon::do_stm(tree::Exp* s){
 }
 
 tree::Stm* Canon::do_stm(tree::Stm* s){
-	// std::cout << "do_stm(tree::Stm* s)" << std::endl;
     if(instanceof<tree::SEQ>(s)){
         return do_stm((tree::SEQ*)(s));
     }
@@ -187,20 +152,17 @@ tree::Stm* Canon::do_stm(tree::Stm* s){
 }
 
 tree::Stm* Canon::reorder_stm(tree::Stm* s){
-	// std::cout << "reorder_stm(tree::Stm* s)" << std::endl;
     StmExpList* x = reorder(s->kids());
     return seq(x->m_stm, s->build(*(x->m_exps)));
 }
 
 tree::ESEQ* Canon::do_exp(tree::ESEQ* e){
-	// std::cout << "do_exp(tree::ESEQ* e)" << std::endl;
     tree::Stm* stms = do_stm(e->m_stm);
     tree::ESEQ* b = do_exp(e->m_exp);
     return new tree::ESEQ(seq(stms, b->m_stm), b->m_exp);
 }
 
 tree::ESEQ* Canon::do_exp(tree::Exp* e){
-	// std::cout << "do_exp(tree::Exp* e)" << std::endl;
     if(instanceof<tree::ESEQ>(e)){
         return do_exp((tree::ESEQ*)(e));
     }
@@ -210,21 +172,18 @@ tree::ESEQ* Canon::do_exp(tree::Exp* e){
 }
 
 tree::ESEQ* Canon::reorder_exp(tree::Exp* e){
-    //debuger kaze da u ovoj funkciji puca
-	// std::cout << "reorder_exp(tree::Exp* e)" << std::endl;
     StmExpList* x = reorder(e->kids());
     return new tree::ESEQ(x->m_stm,(tree::Exp*)(e->build(*(x->m_exps))));
 }
 
 
 StmExpList* Canon::reorder(tree::ExpList* exps){
-	// std::cout << "reorder(tree::ExpList* exps)" << std::endl;
     if(exps == nullptr)
 	{
 		return m_nopNull;
 	}
     else{
-        tree::Exp* a = exps->m_head; // zasto je ovde nullptr?
+        tree::Exp* a = exps->m_head; 
 		
         if(instanceof<tree::CALL>(a)){
             temp::Temp* t = new temp::Temp();
@@ -255,13 +214,6 @@ tree::StmList* Canon::linear(tree::Stm* s, tree::StmList* l){
         return linear((tree::SEQ*)(s), l);
     }
     else{
-		// if (instanceof<tree::MOVE>(s)){
-		// 	std::cout << "move" << std::endl;
-		// }
-		// else{
-		// 	std::cout << "usao" << std::endl;
-		// }
-		// exit(0);
         return new tree::StmList(s, l);
     }
 }
@@ -274,11 +226,6 @@ tree::StmList* Canon::linearize(tree::Stm* s){
 StmListList::StmListList(tree::StmList* h,StmListList* t)
     : m_head(h), m_tail(t)
 {}
-StmListList::~StmListList(){
-    //TODO
-}
-
-
 
 tree::StmList* TraceSchedule::getLast(tree::StmList* block){
     tree::StmList* l = block;
@@ -362,9 +309,7 @@ TraceSchedule::TraceSchedule(BasicBlocks* b){
     m_table = nullptr;
 }
 
-TraceSchedule::~TraceSchedule(){
-    //TODO
-}
+
 
 
 
