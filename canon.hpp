@@ -14,6 +14,9 @@ namespace canon {
             ~StmListList();
     };
     //BasicBlocks groups statements into sequences of straight-line code
+    //First statement is Label
+    //Last is JUMP or CJUMP
+    //There are no others LABELS or jumps
     class BasicBlocks {
         public:
             StmListList*  m_blocks;
@@ -37,7 +40,7 @@ namespace canon {
             MoveCall(tree::TEMP* d, tree::CALL* s);
             tree::ExpList* kids();
             tree::Stm* build(const tree::ExpList& kids);
-            ~MoveCall();
+            ~MoveCall(){};
 
     };
     class ExpCall : public tree::Stm {
@@ -46,7 +49,7 @@ namespace canon {
             ExpCall(tree::CALL* c);
             tree::ExpList* kids();
             tree::Stm* build(const tree::ExpList& kids);
-            ~ExpCall();
+            ~ExpCall(){};
     };
     class StmExpList {
         public:

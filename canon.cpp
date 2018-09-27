@@ -26,13 +26,17 @@ void BasicBlocks::doStms(tree::StmList* l){
         doStms(new tree::StmList(new tree::JUMP(m_done),nullptr));
     }
     else if (instanceof<tree::JUMP>(l->m_head) || instanceof<tree::CJUMP>(l->m_head)){
+        //Block is ended
         addStm(l->m_head);
+        //Make new block
         mkBlocks(l->m_tail);
     }
     else if (instanceof<tree::LABEL>(l->m_head)){
+        //Starts new block
         doStms(new tree::StmList(new tree::JUMP(((tree::LABEL*)(l->m_head))->m_label),l));
     }
     else{
+        //Something else
         addStm(l->m_head);
         doStms(l->m_tail);
 
@@ -104,7 +108,7 @@ tree::Stm* Canon::seq(tree::Stm* a, tree::Stm* b){
         return new tree::SEQ(a, b);
     }
 }
-
+//The commute function estimates (very naively) whether a statement commutes with an expression
 bool Canon::commute(tree::Stm* a, tree::Exp* b){
     return isNop(a) || instanceof<tree::NAME>(b) || instanceof<tree::CONST>(b);
 }
@@ -217,6 +221,8 @@ tree::StmList* Canon::linear(tree::Stm* s, tree::StmList* l){
         return new tree::StmList(s, l);
     }
 }
+//Linearize function repeatedly applies the rule:
+//SEQ(SEQ(a,b),c) = SEQ(a,SQE(B,c))
 tree::StmList* Canon::linearize(tree::Stm* s){
     return linear(do_stm(s), nullptr);
 }
@@ -237,6 +243,12 @@ tree::StmList* TraceSchedule::getLast(tree::StmList* block){
 
 }
 
+//Now the basic blocks can be arranged in any order, and the result of executing
+//the program will be the same – every block ends with a jump to the appropriate place
+// We can take advantage of this to choose an ordering of the blocks
+//satisfying the condition that each CJUMP is followed by its false label
+// To minimize the number of JUMPs from one trace to another, we would like to have as few
+//traces as possible in our covering set.
 void TraceSchedule::trace(tree::StmList* l){
     while(true){
         tree::LABEL* lab = (tree::LABEL*)(l->m_head);
