@@ -202,8 +202,10 @@ void Semant::transDec0(absyn::Dec* e)
 translate::Exp* Semant::transDec(absyn::Dec* e)
 {
 	if (instanceof<absyn::VarDec>(e)) {
+		// types are already declared, so set flag and prevent another declaration
 		if (m_TypeDecFlag == true)
 			m_TDecFlag = true;
+		// functions are already declared, so set flag and prevent another declaration
 		if (m_FuncDecFlag == true)
 			m_FDecFlag = true;
 
@@ -216,6 +218,7 @@ translate::Exp* Semant::transDec(absyn::Dec* e)
 			return transDec((absyn::TypeDec*) e);
 		}
 
+		// type declarations should be all together, it this is true then they are separate and it is error
 		if (m_TDecFlag == true) {
 			m_env->m_errorMsg->error(e->m_pos, "");
 			return nullptr;
@@ -228,6 +231,7 @@ translate::Exp* Semant::transDec(absyn::Dec* e)
 			return transDec((absyn::FunctionDec*) e);
 		}
 
+		// function declarations should be all together, it this is true then they are separate and it is error
 		if (m_FDecFlag == true) {
 			m_env->m_errorMsg->error(e->m_pos, "");
 			return nullptr;
@@ -526,7 +530,7 @@ ExpTy* Semant::transExp(absyn::AssignExp* e)
 		return nullptr;
 	}
 	
-	// x = a
+	// cannot assign var for for
 	if (instanceof<absyn::SimpleVar>(var)) {
 		absyn::SimpleVar* ev = (absyn::SimpleVar*)var;
 		Entry* x = (Entry*)(m_env->m_vEnv->get(ev->m_name));
@@ -643,6 +647,7 @@ ExpTy* Semant::transExp(absyn::ArrayExp* e)
 	}
 
 	ExpTy* size = transExp(e->m_size);
+	// size must be int
 	if (!(instanceof<types::INT>(size->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
@@ -650,6 +655,7 @@ ExpTy* Semant::transExp(absyn::ArrayExp* e)
 
 	types::ARRAY* ar = (types::ARRAY*)ty->actual();
 	ExpTy* ini = transExp(e->m_init);
+	// initial value type must match array type
 	if (!ini->m_ty->coerceTo(ar->m_element->actual())) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
@@ -663,16 +669,19 @@ ExpTy* Semant::transExp(absyn::IfExp* e)
 	ExpTy* thenET = transExp(e->m_thenclause);
 	ExpTy* elseET = transExp(e->m_elseclause);
 
+	// result of condition must be int
 	if (e->m_test == nullptr || testET == nullptr || !(instanceof<types::INT>(testET->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
 	}
 
+	// if there is not else branch then then must be void
 	if (e->m_elseclause == nullptr && (!(instanceof<types::VOID>(thenET->m_ty->actual())))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
 	}
 
+	// else and then type must match
 	if (e->m_elseclause != nullptr && !thenET->m_ty->coerceTo(elseET->m_ty)) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
@@ -690,12 +699,14 @@ ExpTy* Semant::transExp(absyn::WhileExp* e)
 	if (transt == nullptr)
 		return nullptr;
 
+	// type of test must be int
 	if (!(instanceof<types::INT>(transt->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
 	}
 
 	temp::Label* out = new temp::Label();
+	// use this stack for break
 	m_loopStack.push(out);
 	ExpTy* bdy = transExp(e->m_body);
 	m_loopStack.pop();
@@ -703,6 +714,7 @@ ExpTy* Semant::transExp(absyn::WhileExp* e)
 	if (bdy == nullptr)
 		return nullptr;
 
+	// body type must be void
 	if (!(instanceof<types::VOID>(bdy->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
@@ -715,6 +727,7 @@ ExpTy* Semant::transExp(absyn::ForExp* e)
 {
 	bool flag = false;
 	
+	// upper bound must be int and initial value of var in for must be int
 	if (!( instanceof<types::INT>(transExp(e->m_hi)->m_ty->actual())) || !( instanceof<types::INT>(transExp(e->m_var->m_init)->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 	}
@@ -747,21 +760,26 @@ ExpTy* Semant::transExp(absyn::ForExp* e)
 
 ExpTy* Semant::transExp(absyn::BreakExp* e)
 {
+	// no loop to break
 	if (m_loopStack.empty()) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
 	}
+
 	return new ExpTy(m_trans->transBreakExp(m_loopStack.top()), new types::VOID());
 }
 
 ExpTy* Semant::transExp(absyn::LetExp* e)
 {
 	translate::Exp* ex = nullptr;
+
 	m_env->m_vEnv->beginScope();
 	m_env->m_tEnv->beginScope();
+
 	ExpTy* td = transDecList(e->m_decs);
 	if (td != nullptr)
 		ex = td->m_exp;
+
 	ExpTy* tb = transExp(e->m_body);
 	if (tb == nullptr)
 		ex = m_trans->stmcat(ex, nullptr);
@@ -791,6 +809,7 @@ ExpTy* Semant::transDecList(absyn::DecList* e)
 ExpTy* Semant::transExp(absyn::SeqExp* e)
 {
 	translate::Exp* ex = nullptr;
+
 	for (absyn::ExpList* t = e->m_list; t != nullptr; t = t->m_tail) {
 		ExpTy* x = transExp(t->m_head);
 
@@ -802,13 +821,16 @@ ExpTy* Semant::transExp(absyn::SeqExp* e)
 					ex = m_trans->exprcat(ex, x->m_exp);
 				}
 			}
+
 			if (x != nullptr)
 				return new ExpTy(ex, x->m_ty);
 			else
 				return new ExpTy(ex, new types::VOID());
 		}
+
 		ex = m_trans->stmcat(ex, x->m_exp);
 	}
+
 	return nullptr;
 }
 
@@ -825,13 +847,15 @@ ExpTy* Semant::transVar(absyn::SimpleVar* e)
 
 ExpTy* Semant::transVar(absyn::SubscriptVar* e)
 {
-	if (!( instanceof<types::INT>(transExp(e->m_index)->m_ty->actual()))) {
+	// index must be int
+	if (!(instanceof<types::INT>(transExp(e->m_index)->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
 	}
+
 	ExpTy* ev = transVar(e->m_var);
 	ExpTy* ei = transExp(e->m_index);
-	if (ev == nullptr || !( instanceof<types::ARRAY>(ev->m_ty->actual()))) {
+	if (ev == nullptr || !(instanceof<types::ARRAY>(ev->m_ty->actual()))) {
 		m_env->m_errorMsg->error(e->m_pos, "");
 		return nullptr;
 	}
