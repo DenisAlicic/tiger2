@@ -283,9 +283,13 @@ StmListList::~StmListList(){
 tree::StmList* TraceSchedule::getLast(tree::StmList* block){
     tree::StmList* l = block;
     while(l->m_tail->m_tail != nullptr)
-        l = l->m_tail;
+	{
+		l = l->m_tail;
+	}
     return l;
+
 }
+
 void TraceSchedule::trace(tree::StmList* l){
     while(true){
         tree::LABEL* lab = (tree::LABEL*)(l->m_head);
@@ -331,6 +335,7 @@ void TraceSchedule::trace(tree::StmList* l){
         }
     }
 }
+
 tree::StmList* TraceSchedule::getNext(){
     if(m_theBlocks->m_blocks == nullptr){
         return new tree::StmList(new tree::LABEL(m_theBlocks->m_done),nullptr);
@@ -348,6 +353,7 @@ tree::StmList* TraceSchedule::getNext(){
         }
     }
 }
+
 TraceSchedule::TraceSchedule(BasicBlocks* b){
     m_theBlocks = b;
     for(StmListList* l = b->m_blocks; l != nullptr; l = l->m_tail)
@@ -355,6 +361,7 @@ TraceSchedule::TraceSchedule(BasicBlocks* b){
     m_stms = getNext();
     m_table = nullptr;
 }
+
 TraceSchedule::~TraceSchedule(){
     //TODO
 }

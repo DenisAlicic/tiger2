@@ -83,6 +83,7 @@ AccessList::AccessList(Access* head, AccessList* accl)
 Level::Level(Level* parent, symbol::Symbol* name, util::BoolList* fmls)
 	: m_parent(parent)
 {
+	// pass one argument by default for static link
 	util::BoolList* bl = new util::BoolList(true, fmls);
 	m_frame = parent->m_frame->newFrame(new temp::Label(name), bl);
 	for (frame::AccessList* f = m_frame->m_formals; f != nullptr; f = f->m_next)

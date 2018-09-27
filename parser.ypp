@@ -89,6 +89,7 @@ program : expr { $$ = $1;
 	    tiger::errormsg::ErrorMsg* errorMsg = new tiger::errormsg::ErrorMsg(filename);
 
 	    absyn::Print pr(std::cout);
+		// print ast
 //	    pr.prExp((absyn::Exp*)$$, 0);
 //	    std::cout << std::endl;
 
@@ -113,7 +114,7 @@ program : expr { $$ = $1;
 			}
 	   }
 
-       delete $$;
+       //delete $$;
 }
 ;
 

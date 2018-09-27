@@ -80,20 +80,3 @@ std::string DefaultMap::tempMap(Temp* temp) const
 	return temp->toString();
 }
 
-CombineMap::CombineMap(TempMap* tmap1, TempMap* tmap2)
-	: m_tmap1(tmap1), m_tmap2(tmap2)
-{}
-
-std::string CombineMap::tempMap(Temp* temp) const
-{
-	std::string s = m_tmap1->tempMap(temp);
-	if (!s.empty())
-		return s;
-	return m_tmap2->tempMap(temp);
-}
-
-CombineMap::~CombineMap()
-{
-	// delete m_tmap1;
-	// delete m_tmap2;
-}
